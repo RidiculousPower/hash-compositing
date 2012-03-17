@@ -16,6 +16,7 @@ An implementation of Hash that permits chaining, where children inherit changes 
 
 # Usage #
 
+```ruby
 compositing_hash = CompositingHash.new
 sub_compositing_hash = CompositingHash.new( compositing_hash )
 
@@ -36,6 +37,7 @@ sub_compositing_hash.push( :some_value )
 # => { }
 # sub_compositing_hash
 # => { :some_key => :some_value }
+```
 
 # License #
 
