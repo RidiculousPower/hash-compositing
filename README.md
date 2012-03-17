@@ -26,13 +26,13 @@ compositing_hash[ :some_key ] = :some_value
 # sub_compositing_hash
 # => { :some_key => :some_value }
 
-compositing_hash.delete_at( 0 )
+compositing_hash.delete( :some_key )
 # compositing_hash
 # => { }
 # sub_compositing_hash
 # => { }
 
-sub_compositing_hash.push( :some_value )
+sub_compositing_hash[ :some_key ] = :some_value
 # compositing_hash
 # => { }
 # sub_compositing_hash
