@@ -18,8 +18,10 @@ class ::CompositingHash < ::Hash
 
       @parent_composite_hash.register_sub_composite_hash( self )
 
-      merge!( @parent_composite_hash )
-
+      @parent_composite_hash.each do |this_key, this_object|
+        set_parent_element_in_self( this_key, this_object )
+      end
+      
     end
     
   end
