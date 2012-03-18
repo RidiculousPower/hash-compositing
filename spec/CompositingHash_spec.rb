@@ -398,5 +398,250 @@ describe ::CompositingHash do
     cascading_composite_hash.should == { :other_setting => :some_value }
 
   end
+
+  ##################
+  #  pre_set_hook  #
+  ##################
+
+  it 'has a hook that is called before setting a value; return value is used in place of object' do
+    
+    class ::CompositingHash::SubMockPreSet < ::CompositingHash
+      
+      def pre_set_hook( key, object, is_insert = false )
+        return :some_other_value
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockPreSet.new
+
+    cascading_composite_hash[ :some_key ] = :some_value
+    
+    cascading_composite_hash.should == { :some_key => :some_other_value }
+    
+  end
+
+  ###################
+  #  post_set_hook  #
+  ###################
+
+  it 'has a hook that is called after setting a value' do
+
+    class ::CompositingHash::SubMockPostSet < ::CompositingHash
+      
+      def post_set_hook( key, object, is_insert = false )
+        unless key == :some_other_key
+          self[ :some_other_key ] = :some_other_value
+        end
+        return object
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockPostSet.new
+
+    cascading_composite_hash[ :some_key ] = :some_value
+    
+    cascading_composite_hash.should == { :some_key => :some_value,
+                                          :some_other_key => :some_other_value }
+    
+  end
+
+  ##################
+  #  pre_get_hook  #
+  ##################
+
+  it 'has a hook that is called before getting a value; if return value is false, get does not occur' do
+    
+    class ::CompositingHash::SubMockPreGet < ::CompositingHash
+      
+      def pre_get_hook( key )
+        return false
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockPreGet.new
+    
+    cascading_composite_hash[ :some_key ] = :some_value
+    cascading_composite_hash[ :some_key ].should == nil
+    
+    cascading_composite_hash.should == { :some_key => :some_value }
+    
+  end
+
+  ###################
+  #  post_get_hook  #
+  ###################
+
+  it 'has a hook that is called after getting a value' do
+
+    class ::CompositingHash::SubMockPostGet < ::CompositingHash
+      
+      def post_get_hook( key, object )
+        self[ :some_other_key ] = :some_other_value
+        return object
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockPostGet.new
+    
+    cascading_composite_hash[ :some_key ] = :some_value
+
+    cascading_composite_hash.should == { :some_key => :some_value }
+    
+    cascading_composite_hash[ :some_key ].should == :some_value
+    
+    cascading_composite_hash.should == { :some_key => :some_value,
+                                         :some_other_key => :some_other_value }
+    
+  end
+
+  #####################
+  #  pre_delete_hook  #
+  #####################
+
+  it 'has a hook that is called before deleting an key; if return value is false, delete does not occur' do
+    
+    class ::CompositingHash::SubMockPreDelete < ::CompositingHash
+      
+      def pre_delete_hook( key )
+        return false
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockPreDelete.new
+    
+    cascading_composite_hash[ :some_key ] = :some_value
+    cascading_composite_hash.delete( :some_key )
+    
+    cascading_composite_hash.should == { :some_key => :some_value }
+    
+  end
+
+  ######################
+  #  post_delete_hook  #
+  ######################
+
+  it 'has a hook that is called after deleting an key' do
+    
+    class ::CompositingHash::SubMockPostDelete < ::CompositingHash
+      
+      def post_delete_hook( key, object )
+        unless key == :some_other_key
+          delete( :some_other_key )
+        end
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockPostDelete.new
+    
+    cascading_composite_hash[ :some_key ] = :some_value
+    cascading_composite_hash[ :some_other_key ] = :some_other_value
+    cascading_composite_hash.delete( :some_key )
+    
+    cascading_composite_hash.should == { }
+    
+  end
+
+  ########################
+  #  child_pre_set_hook  #
+  ########################
+
+  it 'has a hook that is called before setting a value that has been passed by a parent; return value is used in place of object' do
+    
+    class ::CompositingHash::SubMockChildPreSet < ::CompositingHash
+      
+      def child_pre_set_hook( key, object, is_insert = false )
+        return :some_other_value
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockChildPreSet.new
+    sub_cascading_composite_hash = ::CompositingHash::SubMockChildPreSet.new( cascading_composite_hash )
+
+    cascading_composite_hash[ :some_key ] = :some_value
+
+    cascading_composite_hash.should == { :some_key => :some_value }
+    sub_cascading_composite_hash.should == { :some_key => :some_other_value }
+    
+  end
+
+  #########################
+  #  child_post_set_hook  #
+  #########################
+
+  it 'has a hook that is called after setting a value passed by a parent' do
+
+    class ::CompositingHash::SubMockChildPostSet < ::CompositingHash
+      
+      def child_post_set_hook( key, object, is_insert = false )
+        self[ :some_other_key ] = :some_other_value
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockChildPostSet.new
+    sub_cascading_composite_hash = ::CompositingHash::SubMockChildPostSet.new( cascading_composite_hash )
+    cascading_composite_hash[ :some_key ] = :some_value
+
+    cascading_composite_hash.should == { :some_key => :some_value }
+    sub_cascading_composite_hash.should == { :some_key => :some_value,
+                                             :some_other_key => :some_other_value }
+    
+  end
+
+  ###########################
+  #  child_pre_delete_hook  #
+  ###########################
+
+  it 'has a hook that is called before deleting an key that has been passed by a parent; if return value is false, delete does not occur' do
+
+    class ::CompositingHash::SubMockChildPreDelete < ::CompositingHash
+      
+      def child_pre_delete_hook( key )
+        false
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockChildPreDelete.new
+    sub_cascading_composite_hash = ::CompositingHash::SubMockChildPreDelete.new( cascading_composite_hash )
+    cascading_composite_hash[ :some_key ] = :some_value
+    cascading_composite_hash.delete( :some_key )
+
+    cascading_composite_hash.should == { }
+    sub_cascading_composite_hash.should == { :some_key => :some_value }
+    
+  end
+
+  ############################
+  #  child_post_delete_hook  #
+  ############################
+
+  it 'has a hook that is called after deleting an key passed by a parent' do
+
+    class ::CompositingHash::SubMockChildPostDelete < ::CompositingHash
+      
+      def child_post_delete_hook( key, object )
+        delete( :some_other_key )
+      end
+      
+    end
+    
+    cascading_composite_hash = ::CompositingHash::SubMockChildPostDelete.new
+    sub_cascading_composite_hash = ::CompositingHash::SubMockChildPostDelete.new( cascading_composite_hash )
+    cascading_composite_hash[ :some_key ] = :some_value
+    sub_cascading_composite_hash[ :some_other_key ] = :some_other_value
+    cascading_composite_hash.delete( :some_key )
+
+    cascading_composite_hash.should == { }
+    sub_cascading_composite_hash.should == { }
+    
+  end
   
 end

@@ -43,7 +43,7 @@ sub_compositing_hash[ :some_key ] = :some_value
 
   (The MIT License)
 
-  Copyright (c) 2011 Asher
+  Copyright (c) Asher
 
   Permission is hereby granted, free of charge, to any person obtaining
   a copy of this software and associated documentation files (the

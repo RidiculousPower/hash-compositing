@@ -50,8 +50,131 @@ class ::CompositingHash < ::Hash
 
   end
 
+  ######################################  Subclass Hooks  ##########################################
+
+  ##################
+  #  pre_set_hook  #
+  ##################
+
+  def pre_set_hook( key, object )
+    
+    return object
+    
+  end
+
+  ###################
+  #  post_set_hook  #
+  ###################
+
+  def post_set_hook( key, object )
+
+    return object
+    
+  end
+
+  ##################
+  #  pre_get_hook  #
+  ##################
+
+  def pre_get_hook( key )
+    
+    return true
+    
+  end
+
+  ###################
+  #  post_get_hook  #
+  ###################
+
+  def post_get_hook( key, object )
+    
+    return object
+    
+  end
+
+  #####################
+  #  pre_delete_hook  #
+  #####################
+
+  def pre_delete_hook( key )
+    
+    return true
+    
+  end
+
+  ######################
+  #  post_delete_hook  #
+  ######################
+
+  def post_delete_hook( key, object )
+    
+    return object
+    
+  end
+
+  ########################
+  #  child_pre_set_hook  #
+  ########################
+
+  def child_pre_set_hook( key, object )
+    
+    return object
+    
+  end
+
+  #########################
+  #  child_post_set_hook  #
+  #########################
+
+  def child_post_set_hook( key, object )
+    
+    return object
+    
+  end
+
+  ###########################
+  #  child_pre_delete_hook  #
+  ###########################
+
+  def child_pre_delete_hook( key )
+    
+    # false means delete does not take place
+    return true
+    
+  end
+
+  ############################
+  #  child_post_delete_hook  #
+  ############################
+
+  def child_post_delete_hook( key, object )
+    
+    return object
+    
+  end
+  
   #####################################  Self Management  ##########################################
 
+  ########
+  #  []  #
+  ########
+
+  def []( key )
+
+    object = nil
+    
+    if pre_get_hook( key )
+    
+      object = super( key )
+    
+      object = post_get_hook( key, object )
+
+    end
+      
+    return object
+    
+  end
+  
   #########
   #  []=  #
   #########
@@ -63,15 +186,19 @@ class ::CompositingHash < ::Hash
   def []=( key, object )
 
     @replaced_parents[ key ] = true
+    
+    object = pre_set_hook( key, object )
 
     non_cascading_store( key, object )
+
+    object = post_set_hook( key, object )
 
     @sub_composite_hashes.each do |this_sub_hash|
       this_sub_hash.instance_eval do
         update_as_sub_hash_for_parent_store( key, object )
       end
     end
-    
+        
     return object
 
   end
@@ -82,7 +209,7 @@ class ::CompositingHash < ::Hash
   ############
 
   private
-    alias_method :non_cascading_delete, :delete
+    alias_method :super_non_cascading_delete, :delete
   public
   
   def delete( key )
@@ -275,6 +402,26 @@ class ::CompositingHash < ::Hash
       private ######################################################################################
   ##################################################################################################
 
+  ##########################
+  #  non_cascading_delete  #
+  ##########################
+
+  def non_cascading_delete( key )
+    
+    object = nil
+    
+    if pre_delete_hook( key )
+    
+      object = super_non_cascading_delete( key )
+
+      object = post_delete_hook( key, object )
+
+    end
+    
+    return object
+    
+  end
+
   #########################  Self-as-Sub Management for Parent Updates  ############################
 
   #########################################
@@ -303,7 +450,13 @@ class ::CompositingHash < ::Hash
   
   def set_parent_element_in_self( key, object )
     
+    object = pre_set_hook( key, object )
+    object = child_pre_set_hook( key, object )
+    
     non_cascading_store( key, object )
+  
+    object = post_set_hook( key, object )
+    object = child_post_set_hook( key, object )
     
   end
 
@@ -315,8 +468,16 @@ class ::CompositingHash < ::Hash
     
     unless @replaced_parents[ key ]
     
-      non_cascading_delete( key )
-    
+      if pre_delete_hook( key )       and
+         child_pre_delete_hook( key )
+         
+        object = non_cascading_delete( key )
+      
+        post_delete_hook( key, object )
+        child_post_delete_hook( key, object )
+      
+      end
+      
       @sub_composite_hashes.each do |this_hash|
         this_hash.instance_eval do
           update_as_sub_hash_for_parent_delete( key )
