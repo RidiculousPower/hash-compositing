@@ -6,3 +6,8 @@ Initial release.
 == 3/18/12
 
 Added hooks for subclassing.
+
+== 3/19/12
+
+Moved parent initialization to separate method (with call to initialize so existing behavior remains).
+Now parent can be initialized after object initialization.

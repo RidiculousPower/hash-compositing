@@ -14,6 +14,18 @@ class ::CompositingHash < ::Hash
     # we may later have our own child composites that register with us
     @sub_composite_hashes = [ ]
 
+    initialize_for_parent( parent_composite_hash )
+    
+  end
+
+  ###################################  Sub-Hash Management  #######################################
+
+  ###########################
+  #  initialize_for_parent  #
+  ###########################
+
+  def initialize_for_parent( parent_composite_hash )
+
     if @parent_composite_hash = parent_composite_hash
 
       @parent_composite_hash.register_sub_composite_hash( self )
@@ -23,11 +35,9 @@ class ::CompositingHash < ::Hash
       end
       
     end
-    
+
   end
-
-  ###################################  Sub-Hash Management  #######################################
-
+  
   #################################
   #  register_sub_composite_hash  #
   #################################
@@ -119,7 +129,7 @@ class ::CompositingHash < ::Hash
   ########################
 
   def child_pre_set_hook( key, object )
-    
+
     return object
     
   end
@@ -451,7 +461,7 @@ class ::CompositingHash < ::Hash
   ################################
   
   def set_parent_element_in_self( key, object )
-    
+
     object = pre_set_hook( key, object )
     object = child_pre_set_hook( key, object )
     
