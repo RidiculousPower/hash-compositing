@@ -4,7 +4,7 @@ Gem::Specification.new do |spec|
 
   spec.name                      =  'compositing-hash'
   spec.rubyforge_project         =  'compositing-hash'
-  spec.version                   =  '1.0.4'
+  spec.version                   =  '1.0.5'
 
   spec.summary                   =  "Provides CompositingHash."
   spec.description               =  "An implementation of Hash that permits chaining, where children inherit changes to parent and where parent settings can be overridden in children."

@@ -175,14 +175,38 @@ class ::CompositingHash < ::Hash
 
     object = nil
     
-    if pre_get_hook( key )
+    if @without_hooks
+      pre_get_hook_result = true
+    else
+      pre_get_hook_result = pre_get_hook( key )
+    end
+    
+    if pre_get_hook_result
     
       object = super( key )
-    
-      object = post_get_hook( key, object )
-
+      
+      unless @without_hooks
+        object = post_get_hook( key, object )
+      end
+      
     end
       
+    return object
+    
+  end
+
+  #######################
+  #  get_without_hooks  #
+  #######################
+
+  def get_without_hooks( key )
+    
+    @without_hooks = true
+    
+    object = self[ key ]
+    
+    @without_hooks = false
+    
     return object
     
   end
@@ -199,12 +223,16 @@ class ::CompositingHash < ::Hash
 
     @replaced_parents[ key ] = true
     
-    object = pre_set_hook( key, object )
-
+    unless @without_hooks
+      object = pre_set_hook( key, object )
+    end
+    
     non_cascading_store( key, object )
 
-    object = post_set_hook( key, object )
-
+    unless @without_hooks
+      object = post_set_hook( key, object )
+    end
+    
     @sub_composite_hashes.each do |this_sub_hash|
       this_sub_hash.instance_eval do
         update_as_sub_hash_for_parent_store( key, object )
@@ -215,6 +243,22 @@ class ::CompositingHash < ::Hash
 
   end
   alias_method :store, :[]=
+
+  #########################
+  #  store_without_hooks  #
+  #########################
+
+  def store_without_hooks( key, object )
+    
+    @without_hooks = true
+    
+    self[ key ] = object
+    
+    @without_hooks = false
+    
+    return object
+    
+  end
 
   ############
   #  delete  #
@@ -240,6 +284,22 @@ class ::CompositingHash < ::Hash
 
   end
 
+  ##########################
+  #  delete_without_hooks  #
+  ##########################
+
+  def delete_without_hooks( key )
+    
+    @without_hooks = true
+    
+    object = delete( key )
+    
+    @without_hooks = false
+    
+    return object
+    
+  end
+
   ###############
   #  delete_if  #
   ###############
@@ -258,6 +318,20 @@ class ::CompositingHash < ::Hash
         
     return self
 
+  end
+
+  #############################
+  #  delete_if_without_hooks  #
+  #############################
+
+  def delete_if_without_hooks( & block )
+    
+    @without_hooks = true
+    
+    delete_if( & block )
+    
+    @without_hooks = false
+    
   end
 
   #############
@@ -281,6 +355,22 @@ class ::CompositingHash < ::Hash
 
   end
 
+  ###########################
+  #  reject_without_hooks!  #
+  ###########################
+
+  def reject_without_hooks!
+    
+    @without_hooks = true
+    
+    return_value = reject!( & block )
+    
+    @without_hooks = false
+    
+    return return_value
+    
+  end
+
   #############
   #  keep_if  #
   #############
@@ -301,7 +391,23 @@ class ::CompositingHash < ::Hash
 
 
   end
+  
+  ###########################
+  #  keep_if_without_hooks  #
+  ###########################
 
+  def keep_if_without_hooks( & block )
+    
+    @without_hooks = true
+    
+    keep_if( & block )
+    
+    @without_hooks = false
+    
+    return self
+    
+  end
+  
   #############
   #  select!  #
   #############
@@ -321,6 +427,22 @@ class ::CompositingHash < ::Hash
     
     return return_value
 
+  end
+
+  ###########################
+  #  select_without_hooks!  #
+  ###########################
+
+  def select_without_hooks!( & block )
+    
+    @without_hooks = true
+    
+    return_value = select!( & block )
+    
+    @without_hooks = false
+    
+    return return_value
+    
   end
 
   ############
@@ -347,6 +469,24 @@ class ::CompositingHash < ::Hash
   end
   alias_method :update, :merge!
   
+  ##########################
+  #  merge_without_hooks!  #
+  #  update_without_hooks  #
+  ##########################
+
+  def merge_without_hooks!
+    
+    @without_hooks = true
+    
+    merge!( other_hash )
+    
+    @without_hooks = false
+    
+    return self
+    
+  end
+  alias_method :update_without_hooks, :merge_without_hooks!
+  
   #############
   #  replace  #
   #############
@@ -361,6 +501,20 @@ class ::CompositingHash < ::Hash
 
     return self
 
+  end
+
+  ###########################
+  #  replace_without_hooks  #
+  ###########################
+
+  def replace_without_hooks( other_hash )
+    
+    @without_hooks = true
+    
+    replace( other_hash )
+    
+    @without_hooks = false
+    
   end
 
   ###########
@@ -380,6 +534,22 @@ class ::CompositingHash < ::Hash
 
   end
 
+  #########################
+  #  shift_without_hooks  #
+  #########################
+
+  def shift_without_hooks
+    
+    @without_hooks = true
+    
+    object = shift
+    
+    @without_hooks = false
+    
+    return object
+    
+  end
+
   ###########
   #  clear  #
   ###########
@@ -392,6 +562,22 @@ class ::CompositingHash < ::Hash
 
     return self
 
+  end
+  
+  #########################
+  #  clear_without_hooks  #
+  #########################
+
+  def clear_without_hooks
+    
+    @without_hooks = true
+    
+    clear
+    
+    @without_hooks = false
+    
+    return self
+    
   end
   
   #############
@@ -422,12 +608,20 @@ class ::CompositingHash < ::Hash
     
     object = nil
     
-    if pre_delete_hook( key )
+    if @without_hooks
+      pre_delete_result = true
+    else
+      pre_delete_result = pre_delete_hook( key )
+    end
+    
+    if pre_delete_result
     
       object = super_non_cascading_delete( key )
-
-      object = post_delete_hook( key, object )
-
+      
+      unless @without_hooks
+        object = post_delete_hook( key, object )
+      end
+      
     end
     
     return object
@@ -461,14 +655,18 @@ class ::CompositingHash < ::Hash
   ################################
   
   def set_parent_element_in_self( key, object )
-
-    object = pre_set_hook( key, object )
-    object = child_pre_set_hook( key, object )
+    
+    unless @without_hooks
+      object = pre_set_hook( key, object )
+      object = child_pre_set_hook( key, object )
+    end
     
     non_cascading_store( key, object )
   
-    object = post_set_hook( key, object )
-    object = child_post_set_hook( key, object )
+    unless @without_hooks
+      object = post_set_hook( key, object )
+      object = child_post_set_hook( key, object )
+    end
     
   end
 
@@ -479,15 +677,24 @@ class ::CompositingHash < ::Hash
   def update_as_sub_hash_for_parent_delete( key )
     
     unless @replaced_parents[ key ]
-    
-      if pre_delete_hook( key )       and
-         child_pre_delete_hook( key )
+      
+      if @without_hooks
+        pre_delete_hook_result = true
+        child_pre_delete_hook_result = true
+      else
+        pre_delete_hook_result = pre_delete_hook( key )
+        child_pre_delete_hook_result = child_pre_delete_hook( key )
+      end
+      
+      if pre_delete_hook_result and child_pre_delete_hook_result
          
         object = non_cascading_delete( key )
-      
-        post_delete_hook( key, object )
-        child_post_delete_hook( key, object )
-      
+        
+        unless @without_hooks
+          post_delete_hook( key, object )
+          child_post_delete_hook( key, object )
+        end
+        
       end
       
       @sub_composite_hashes.each do |this_hash|

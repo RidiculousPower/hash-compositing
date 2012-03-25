@@ -11,3 +11,8 @@ Added hooks for subclassing.
 
 Moved parent initialization to separate method (with call to initialize so existing behavior remains).
 Now parent can be initialized after object initialization.
+
+== 3/24/12
+
+Added _without_hook methods to perform actions without calling hooks.
+
