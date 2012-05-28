@@ -1,7 +1,9 @@
 
 class ::CompositingHash < ::Hash
 
-  attr_reader :configuration_instance, :configuration_name
+  include ::CompositingObject
+
+  attr_reader :parent_composite_hash
 
   ################
   #  initialize  #

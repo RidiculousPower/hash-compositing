@@ -16,3 +16,7 @@ Now parent can be initialized after object initialization.
 
 Added _without_hook methods to perform actions without calling hooks.
 
+== 5/27/12
+
+Added common CompositingObject support.
+Added :parent_composite_hash reader.
