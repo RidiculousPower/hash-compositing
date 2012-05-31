@@ -20,3 +20,7 @@ Added _without_hook methods to perform actions without calling hooks.
 
 Added common CompositingObject support.
 Added :parent_composite_hash reader.
+
+== 5/31/12
+
+Added :parent_composite_object and changed :parent_composite_hash to alias :parent_composite_object.

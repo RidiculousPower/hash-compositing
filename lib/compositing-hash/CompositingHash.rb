@@ -3,7 +3,7 @@ class ::CompositingHash < ::Hash
 
   include ::CompositingObject
 
-  attr_reader :parent_composite_hash
+  alias_method :parent_composite_hash, :parent_composite_object
 
   ################
   #  initialize  #
@@ -28,11 +28,11 @@ class ::CompositingHash < ::Hash
 
   def initialize_for_parent( parent_composite_hash )
 
-    if @parent_composite_hash = parent_composite_hash
+    if @parent_composite_object = parent_composite_hash
 
-      @parent_composite_hash.register_sub_composite_hash( self )
+      @parent_composite_object.register_sub_composite_hash( self )
 
-      @parent_composite_hash.each do |this_key, this_object|
+      @parent_composite_object.each do |this_key, this_object|
         set_parent_element_in_self( this_key, this_object )
       end
       
@@ -590,8 +590,8 @@ class ::CompositingHash < ::Hash
   def freeze!
     
     # unregister with parent composite so we don't get future updates from it
-    if @parent_composite_hash
-      @parent_composite_hash.unregister_sub_composite_hash( self )
+    if @parent_composite_object
+      @parent_composite_object.unregister_sub_composite_hash( self )
     end
     
     return self
@@ -677,7 +677,7 @@ class ::CompositingHash < ::Hash
   ##########################################
 
   def update_as_sub_hash_for_parent_delete( key )
-    
+
     unless @replaced_parents[ key ]
       
       if @without_hooks

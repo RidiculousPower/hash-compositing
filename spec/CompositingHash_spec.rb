@@ -26,7 +26,7 @@ describe ::CompositingHash do
   
     cascading_composite_hash = ::CompositingHash.new
 
-    cascading_composite_hash.instance_variable_get( :@parent_composite_hash ).should == nil
+    cascading_composite_hash.instance_variable_get( :@parent_composite_object ).should == nil
     cascading_composite_hash.should == {}
     cascading_composite_hash[ :A ] = 1
     cascading_composite_hash[ :B ] = 2
@@ -38,7 +38,7 @@ describe ::CompositingHash do
                                          :D => 4 }
     
     sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
-    sub_cascading_composite_hash.instance_variable_get( :@parent_composite_hash ).should == cascading_composite_hash
+    sub_cascading_composite_hash.instance_variable_get( :@parent_composite_object ).should == cascading_composite_hash
     sub_cascading_composite_hash.should == { :A => 1,
                                              :B => 2,
                                              :C => 3,
