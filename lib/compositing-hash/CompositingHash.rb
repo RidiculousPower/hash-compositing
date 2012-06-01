@@ -9,8 +9,10 @@ class ::CompositingHash < ::Hash
   #  initialize  #
   ################
   
-  def initialize( parent_composite_hash = nil )
-
+  def initialize( parent_composite_hash = nil, configuration_instance = nil )
+    
+    super( configuration_instance )
+    
     @replaced_parents = { }
 
     # we may later have our own child composites that register with us

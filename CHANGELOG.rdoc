@@ -24,3 +24,7 @@ Added :parent_composite_hash reader.
 == 5/31/12
 
 Added :parent_composite_object and changed :parent_composite_hash to alias :parent_composite_object.
+
+== 6/1/12
+
+Added :configuration_instance parameter to :initialize.
