@@ -1,9 +1,7 @@
 
-class ::CompositingHash < ::Hash
+class ::CompositingHash < ::HookedHash
 
-  include ::CompositingObject
-
-  alias_method :parent_composite_hash, :parent_composite_object
+  attr_reader :parent_composite_hash
 
   ################
   #  initialize  #
@@ -12,6 +10,8 @@ class ::CompositingHash < ::Hash
   def initialize( parent_composite_hash = nil, configuration_instance = nil )
     
     super( configuration_instance )
+    
+    @parent_composite_hash = parent_composite_hash
     
     @replaced_parents = { }
 
