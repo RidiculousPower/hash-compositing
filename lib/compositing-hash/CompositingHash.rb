@@ -1,8 +1,6 @@
 
 class ::CompositingHash < ::HookedHash
 
-  attr_reader :parent_composite_hash
-
   ################
   #  initialize  #
   ################
@@ -10,9 +8,7 @@ class ::CompositingHash < ::HookedHash
   def initialize( parent_composite_hash = nil, configuration_instance = nil )
     
     super( configuration_instance )
-    
-    @parent_composite_hash = parent_composite_hash
-    
+        
     @replaced_parents = { }
 
     # we may later have our own child composites that register with us
@@ -21,6 +17,15 @@ class ::CompositingHash < ::HookedHash
     initialize_for_parent( parent_composite_hash )
     
   end
+
+  #############################
+  #  parent_composite_object  #
+  #  parent_composite_hash    #
+  #############################
+
+  attr_accessor :parent_composite_object
+
+  alias_method :parent_composite_hash, :parent_composite_object
 
   ###################################  Sub-Hash Management  #######################################
 
