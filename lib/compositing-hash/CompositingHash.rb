@@ -41,8 +41,9 @@ class ::CompositingHash < ::HookedHash
       @parent_composite_object.register_sub_composite_hash( self )
 
       # @parent_key_lookup tracks keys that we have not yet received from parent
-      @parent_composite_object.keys.each do |this_key|
+      @parent_composite_object.each do |this_key, this_object|
         @parent_key_lookup[ this_key ] = true
+        non_cascading_store( this_key, nil )
       end
       
     end
@@ -117,7 +118,7 @@ class ::CompositingHash < ::HookedHash
   end
   
   #####################################  Self Management  ##########################################
-
+  
   ########
   #  ==  #
   ########
@@ -132,6 +133,58 @@ class ::CompositingHash < ::HookedHash
     
   end
   
+  ##########
+  #  each  #
+  ##########
+  
+  def each( *args, & block )
+    
+    @parent_key_lookup.each do |this_key, true_value|
+      self[ this_key ]
+    end
+
+    super
+    
+  end
+
+  ##########
+  #  to_s  #
+  ##########
+  
+  def to_s
+   
+    @parent_key_lookup.each do |this_key, true_value|
+      self[ this_key ]
+    end
+   
+    super
+    
+  end
+
+  #############
+  #  inspect  #
+  #############
+  
+  def inspect
+   
+    @parent_key_lookup.each do |this_key, true_value|
+      self[ this_key ]
+    end
+   
+    super
+    
+  end
+  
+  ###########
+  #  count  #
+  ###########
+  
+  def count
+   
+    return super + @parent_key_lookup.count
+    
+  end
+    
   ########
   #  []  #
   ########
@@ -139,14 +192,14 @@ class ::CompositingHash < ::HookedHash
   def []( key )
     
     return_value = nil
-    
+
     if @parent_key_lookup.has_key?( key )
-      @parent_key_lookup.delete( key )
       return_value = set_parent_element_in_self( key, @parent_composite_object[ key ] )
+      @parent_key_lookup.delete( key )
     else
       return_value = super
     end
-    
+
     return return_value
     
   end
