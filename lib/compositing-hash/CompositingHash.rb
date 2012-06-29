@@ -174,16 +174,6 @@ class ::CompositingHash < ::HookedHash
     super
     
   end
-  
-  ###########
-  #  count  #
-  ###########
-  
-  def count
-   
-    return super + @parent_key_lookup.count
-    
-  end
     
   ########
   #  []  #
