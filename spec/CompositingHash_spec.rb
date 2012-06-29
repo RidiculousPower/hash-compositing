@@ -57,10 +57,11 @@ describe ::CompositingHash do
   it 'can update for a parent store' do
 
     cascading_composite_hash = ::CompositingHash.new
+    cascading_composite_hash[ :A ] = 1
     sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
     
     sub_cascading_composite_hash.instance_eval do
-      update_as_sub_hash_for_parent_store( :A, 1 )
+      update_as_sub_hash_for_parent_store( :A )
       self.should == { :A => 1 }
     end
     
@@ -80,7 +81,7 @@ describe ::CompositingHash do
     sub_cascading_composite_hash.should == { :A => 1 }
 
     sub_cascading_composite_hash.instance_eval do
-      update_as_sub_hash_for_parent_delete( :A )
+      update_as_sub_hash_for_parent_delete( :A, 1 )
       self.should == { }
     end
     

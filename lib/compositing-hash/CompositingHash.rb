@@ -10,6 +10,7 @@ class ::CompositingHash < ::HookedHash
     super( configuration_instance )
         
     @replaced_parents = { }
+    @parent_key_lookup = { }
 
     # we may later have our own child composites that register with us
     @sub_composite_hashes = [ ]
@@ -39,8 +40,9 @@ class ::CompositingHash < ::HookedHash
 
       @parent_composite_object.register_sub_composite_hash( self )
 
-      @parent_composite_object.each do |this_key, this_object|
-        update_as_sub_hash_for_parent_store( this_key, this_object )
+      # @parent_key_lookup tracks keys that we have not yet received from parent
+      @parent_composite_object.keys.each do |this_key|
+        @parent_key_lookup[ this_key ] = true
       end
       
     end
@@ -116,6 +118,39 @@ class ::CompositingHash < ::HookedHash
   
   #####################################  Self Management  ##########################################
 
+  ########
+  #  ==  #
+  ########
+
+  def ==( object )
+    
+    @parent_key_lookup.each do |this_key, true_value|
+      self[ this_key ]
+    end
+    
+    super
+    
+  end
+  
+  ########
+  #  []  #
+  ########
+  
+  def []( key )
+    
+    return_value = nil
+    
+    if @parent_key_lookup.has_key?( key )
+      @parent_key_lookup.delete( key )
+      return_value = set_parent_element_in_self( key, @parent_composite_object[ key ] )
+    else
+      return_value = super
+    end
+    
+    return return_value
+    
+  end
+  
   #########
   #  []=  #
   #########
@@ -127,12 +162,14 @@ class ::CompositingHash < ::HookedHash
   def []=( key, object )
 
     @replaced_parents[ key ] = true
-
+    
+    @parent_key_lookup.delete( key )
+    
     super
     
     @sub_composite_hashes.each do |this_sub_hash|
       this_sub_hash.instance_eval do
-        update_as_sub_hash_for_parent_store( key, object )
+        update_as_sub_hash_for_parent_store( key )
       end
     end
         
@@ -153,11 +190,13 @@ class ::CompositingHash < ::HookedHash
 
     @replaced_parents.delete( key )
 
+    @parent_key_lookup.delete( key )
+
     object = super
 
     @sub_composite_hashes.each do |this_sub_hash|
       this_sub_hash.instance_eval do
-        update_as_sub_hash_for_parent_delete( key )
+        update_as_sub_hash_for_parent_delete( key, object )
       end
     end
 
@@ -187,76 +226,101 @@ class ::CompositingHash < ::HookedHash
 
   #########################  Self-as-Sub Management for Parent Updates  ############################
 
-  #########################################
-  #  update_as_sub_hash_for_parent_store  #
-  #########################################
-
-  def update_as_sub_hash_for_parent_store( key, object )
-        
-    unless @replaced_parents[ key ]
-    
-      set_parent_element_in_self( key, object )
-      
-      @sub_composite_hashes.each do |this_hash|
-        this_hash.instance_eval do
-          update_as_sub_hash_for_parent_store( key, object )
-        end
-      end
-    
-    end
-    
-  end
-  
   ################################
   #  set_parent_element_in_self  #
   ################################
   
   def set_parent_element_in_self( key, object )
+
+    unless @without_child_hooks
+      object = child_pre_set_hook( key, object )
+    end
     
     unless @without_hooks
       object = pre_set_hook( key, object )
-      object = child_pre_set_hook( key, object )
     end
     
     non_cascading_store( key, object )
   
     unless @without_hooks
       object = post_set_hook( key, object )
+    end
+
+    unless @without_child_hooks
       object = child_post_set_hook( key, object )
     end
     
+    return object
+    
   end
 
+  #########################################
+  #  update_as_sub_hash_for_parent_store  #
+  #########################################
+
+  def update_as_sub_hash_for_parent_store( key )
+        
+    unless @replaced_parents[ key ]
+    
+      @parent_key_lookup[ key ] = true
+      
+      @sub_composite_hashes.each do |this_hash|
+        this_hash.instance_eval do
+          update_as_sub_hash_for_parent_store( key )
+        end
+      end
+    
+    end
+    
+  end
+  
   ##########################################
   #  update_as_sub_hash_for_parent_delete  #
   ##########################################
 
-  def update_as_sub_hash_for_parent_delete( key )
+  def update_as_sub_hash_for_parent_delete( key, object )
 
     unless @replaced_parents[ key ]
-      
-      if @without_hooks
-        pre_delete_hook_result = true
+            
+      if @without_child_hooks
         child_pre_delete_hook_result = true
       else
-        pre_delete_hook_result = pre_delete_hook( key )
         child_pre_delete_hook_result = child_pre_delete_hook( key )
       end
       
-      if pre_delete_hook_result and child_pre_delete_hook_result
+      if @without_hooks
+        pre_delete_hook_result = true
+      else
+        pre_delete_hook_result = pre_delete_hook( key )
+      end
+
+      if child_pre_delete_hook_result and pre_delete_hook_result
          
+        @parent_key_lookup.delete( key )      
         object = non_cascading_delete( key )
         
         unless @without_hooks
           post_delete_hook( key, object )
+        end
+
+        unless @without_child_hooks
           child_post_delete_hook( key, object )
+        end
+      
+      else
+        
+        # if we were told not to delete in child when parent delete
+        # and the child does not yet have its parent value
+        # then we need to get it now
+        if @parent_key_lookup.delete( key )
+          self[ key ] = object
         end
         
       end
       
       @sub_composite_hashes.each do |this_hash|
         this_hash.instance_eval do
-          update_as_sub_hash_for_parent_delete( key )
+          update_as_sub_hash_for_parent_delete( key, object )
         end
       end
     
