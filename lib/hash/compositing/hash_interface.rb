@@ -1,5 +1,5 @@
 
-module ::CompositingHash::HashInterface
+module ::Hash::Compositing::HashInterface
     
   ##########################
   #  self.append_features  #

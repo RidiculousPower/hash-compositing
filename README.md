@@ -1,10 +1,10 @@
-# CompositingHash #
+# Hash::Compositing #
 
 http://rubygems.org/gems/hash-compositing
 
 # Description #
 
-Provides CompositingHash.
+Provides Hash::Compositing.
 
 # Summary #
 
@@ -17,8 +17,8 @@ An implementation of Hash that permits chaining, where children inherit changes 
 # Usage #
 
 ```ruby
-compositing_hash = CompositingHash.new
-sub_compositing_hash = CompositingHash.new( compositing_hash )
+compositing_hash = Hash::Compositing.new
+sub_compositing_hash = Hash::Compositing.new( compositing_hash )
 
 compositing_hash[ :some_key ] = :some_value
 # compositing_hash

@@ -7,8 +7,8 @@ require_relative './namespaces'
 # source file requires
 require_relative './requires.rb'
 
-class ::CompositingHash < ::HookedHash
+class ::Hash::Compositing < ::HookedHash
 
-  include ::CompositingHash::HashInterface
+  include ::Hash::Compositing::HashInterface
   
 end

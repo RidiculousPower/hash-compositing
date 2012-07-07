@@ -1,3 +1,3 @@
 
-class ::CompositingHash < ::HookedHash
+class ::Hash::Compositing < ::HookedHash
 end

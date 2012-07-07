@@ -1,20 +1,20 @@
 
 require_relative '../../lib/hash-compositing.rb'
 
-describe ::CompositingHash do
+describe ::Hash::Compositing do
 
   before :all do
 
-    module ::CompositingHash::MockA
+    module ::Hash::Compositing::MockA
       # needed for ccv ancestor determination
       def self.some_configuration
       end
     end
-    module ::CompositingHash::MockB
+    module ::Hash::Compositing::MockB
     end
       
-    @configuration_instance = ::CompositingHash::MockA
-    @sub_configuration_instance = ::CompositingHash::MockB
+    @configuration_instance = ::Hash::Compositing::MockA
+    @sub_configuration_instance = ::Hash::Compositing::MockB
     
   end
 
@@ -24,7 +24,7 @@ describe ::CompositingHash do
 
   it 'can add initialize with an ancestor, inheriting its values and linking to it as a child' do
   
-    cascading_composite_hash = ::CompositingHash.new
+    cascading_composite_hash = ::Hash::Compositing.new
 
     cascading_composite_hash.instance_variable_get( :@parent_composite_object ).should == nil
     cascading_composite_hash.should == {}
@@ -37,7 +37,7 @@ describe ::CompositingHash do
                                          :C => 3,
                                          :D => 4 }
     
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
     sub_cascading_composite_hash.instance_variable_get( :@parent_composite_object ).should == cascading_composite_hash
     sub_cascading_composite_hash.should == { :A => 1,
                                              :B => 2,
@@ -56,9 +56,9 @@ describe ::CompositingHash do
 
   it 'can update for a parent store' do
 
-    cascading_composite_hash = ::CompositingHash.new
+    cascading_composite_hash = ::Hash::Compositing.new
     cascading_composite_hash[ :A ] = 1
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
     
     sub_cascading_composite_hash.instance_eval do
       update_as_sub_hash_for_parent_store( :A )
@@ -73,8 +73,8 @@ describe ::CompositingHash do
 
   it 'can update for a parent delete' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
     
     cascading_composite_hash[ :A ] = 1
     cascading_composite_hash.should == { :A => 1 }
@@ -97,8 +97,8 @@ describe ::CompositingHash do
 
   it 'can add elements' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
     
     cascading_composite_hash[ :some_setting ] = :some_value
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -127,8 +127,8 @@ describe ::CompositingHash do
 
   it 'can delete elements' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
 
     cascading_composite_hash.store( :some_setting, :some_value )
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -161,8 +161,8 @@ describe ::CompositingHash do
 
   it 'can delete elements with a block' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
 
     cascading_composite_hash.store( :some_setting, :some_value )
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -197,8 +197,8 @@ describe ::CompositingHash do
 
   it 'can delete elements with a block' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
 
     cascading_composite_hash.store( :some_setting, :some_value )
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -233,8 +233,8 @@ describe ::CompositingHash do
 
   it 'can keep elements with a block' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
 
     cascading_composite_hash.store( :some_setting, :some_value )
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -269,8 +269,8 @@ describe ::CompositingHash do
 
   it 'can keep elements with a block' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
 
     cascading_composite_hash.store( :some_setting, :some_value )
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -306,8 +306,8 @@ describe ::CompositingHash do
   
   it 'can merge from another hash' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
 
     cascading_composite_hash.merge!( :some_setting => :some_value )
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -330,8 +330,8 @@ describe ::CompositingHash do
   
   it 'can replace existing elements with others' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
 
     cascading_composite_hash.replace( :some_setting => :some_value )
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -350,8 +350,8 @@ describe ::CompositingHash do
   
   it 'can shift the first element' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
 
     cascading_composite_hash.store( :some_setting, :some_value )
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -377,8 +377,8 @@ describe ::CompositingHash do
   
   it 'can clear, causing present elements to be excluded' do
 
-    cascading_composite_hash = ::CompositingHash.new
-    sub_cascading_composite_hash = ::CompositingHash.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing.new
+    sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
 
     cascading_composite_hash.store( :some_setting, :some_value )
     cascading_composite_hash.should == { :some_setting => :some_value }
@@ -406,7 +406,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called before setting a value; return value is used in place of object' do
     
-    class ::CompositingHash::SubMockPreSet < ::CompositingHash
+    class ::Hash::Compositing::SubMockPreSet < ::Hash::Compositing
       
       def pre_set_hook( key, object, is_insert = false )
         return :some_other_value
@@ -414,7 +414,7 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockPreSet.new
+    cascading_composite_hash = ::Hash::Compositing::SubMockPreSet.new
 
     cascading_composite_hash[ :some_key ] = :some_value
     
@@ -428,7 +428,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called after setting a value' do
 
-    class ::CompositingHash::SubMockPostSet < ::CompositingHash
+    class ::Hash::Compositing::SubMockPostSet < ::Hash::Compositing
       
       def post_set_hook( key, object, is_insert = false )
         unless key == :some_other_key
@@ -439,7 +439,7 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockPostSet.new
+    cascading_composite_hash = ::Hash::Compositing::SubMockPostSet.new
 
     cascading_composite_hash[ :some_key ] = :some_value
     
@@ -454,7 +454,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called before getting a value; if return value is false, get does not occur' do
     
-    class ::CompositingHash::SubMockPreGet < ::CompositingHash
+    class ::Hash::Compositing::SubMockPreGet < ::Hash::Compositing
       
       def pre_get_hook( key )
         return false
@@ -462,7 +462,7 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockPreGet.new
+    cascading_composite_hash = ::Hash::Compositing::SubMockPreGet.new
     
     cascading_composite_hash[ :some_key ] = :some_value
     cascading_composite_hash[ :some_key ].should == nil
@@ -477,7 +477,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called after getting a value' do
 
-    class ::CompositingHash::SubMockPostGet < ::CompositingHash
+    class ::Hash::Compositing::SubMockPostGet < ::Hash::Compositing
       
       def post_get_hook( key, object )
         self[ :some_other_key ] = :some_other_value
@@ -486,7 +486,7 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockPostGet.new
+    cascading_composite_hash = ::Hash::Compositing::SubMockPostGet.new
     
     cascading_composite_hash[ :some_key ] = :some_value
 
@@ -505,7 +505,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called before deleting an key; if return value is false, delete does not occur' do
     
-    class ::CompositingHash::SubMockPreDelete < ::CompositingHash
+    class ::Hash::Compositing::SubMockPreDelete < ::Hash::Compositing
       
       def pre_delete_hook( key )
         return false
@@ -513,7 +513,7 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockPreDelete.new
+    cascading_composite_hash = ::Hash::Compositing::SubMockPreDelete.new
     
     cascading_composite_hash[ :some_key ] = :some_value
     cascading_composite_hash.delete( :some_key )
@@ -528,7 +528,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called after deleting an key' do
     
-    class ::CompositingHash::SubMockPostDelete < ::CompositingHash
+    class ::Hash::Compositing::SubMockPostDelete < ::Hash::Compositing
       
       def post_delete_hook( key, object )
         unless key == :some_other_key
@@ -538,7 +538,7 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockPostDelete.new
+    cascading_composite_hash = ::Hash::Compositing::SubMockPostDelete.new
     
     cascading_composite_hash[ :some_key ] = :some_value
     cascading_composite_hash[ :some_other_key ] = :some_other_value
@@ -554,7 +554,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called before setting a value that has been passed by a parent; return value is used in place of object' do
     
-    class ::CompositingHash::SubMockChildPreSet < ::CompositingHash
+    class ::Hash::Compositing::SubMockChildPreSet < ::Hash::Compositing
       
       def child_pre_set_hook( key, object, is_insert = false )
         return :some_other_value
@@ -562,8 +562,8 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockChildPreSet.new
-    sub_cascading_composite_hash = ::CompositingHash::SubMockChildPreSet.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing::SubMockChildPreSet.new
+    sub_cascading_composite_hash = ::Hash::Compositing::SubMockChildPreSet.new( cascading_composite_hash )
 
     cascading_composite_hash[ :some_key ] = :some_value
 
@@ -578,7 +578,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called after setting a value passed by a parent' do
 
-    class ::CompositingHash::SubMockChildPostSet < ::CompositingHash
+    class ::Hash::Compositing::SubMockChildPostSet < ::Hash::Compositing
       
       def child_post_set_hook( key, object, is_insert = false )
         self[ :some_other_key ] = :some_other_value
@@ -586,8 +586,8 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockChildPostSet.new
-    sub_cascading_composite_hash = ::CompositingHash::SubMockChildPostSet.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing::SubMockChildPostSet.new
+    sub_cascading_composite_hash = ::Hash::Compositing::SubMockChildPostSet.new( cascading_composite_hash )
     cascading_composite_hash[ :some_key ] = :some_value
 
     cascading_composite_hash.should == { :some_key => :some_value }
@@ -602,7 +602,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called before deleting an key that has been passed by a parent; if return value is false, delete does not occur' do
 
-    class ::CompositingHash::SubMockChildPreDelete < ::CompositingHash
+    class ::Hash::Compositing::SubMockChildPreDelete < ::Hash::Compositing
       
       def child_pre_delete_hook( key )
         false
@@ -610,8 +610,8 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockChildPreDelete.new
-    sub_cascading_composite_hash = ::CompositingHash::SubMockChildPreDelete.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing::SubMockChildPreDelete.new
+    sub_cascading_composite_hash = ::Hash::Compositing::SubMockChildPreDelete.new( cascading_composite_hash )
     cascading_composite_hash[ :some_key ] = :some_value
     cascading_composite_hash.delete( :some_key )
 
@@ -626,7 +626,7 @@ describe ::CompositingHash do
 
   it 'has a hook that is called after deleting an key passed by a parent' do
 
-    class ::CompositingHash::SubMockChildPostDelete < ::CompositingHash
+    class ::Hash::Compositing::SubMockChildPostDelete < ::Hash::Compositing
       
       def child_post_delete_hook( key, object )
         delete( :some_other_key )
@@ -634,8 +634,8 @@ describe ::CompositingHash do
       
     end
     
-    cascading_composite_hash = ::CompositingHash::SubMockChildPostDelete.new
-    sub_cascading_composite_hash = ::CompositingHash::SubMockChildPostDelete.new( cascading_composite_hash )
+    cascading_composite_hash = ::Hash::Compositing::SubMockChildPostDelete.new
+    sub_cascading_composite_hash = ::Hash::Compositing::SubMockChildPostDelete.new( cascading_composite_hash )
     cascading_composite_hash[ :some_key ] = :some_value
     sub_cascading_composite_hash[ :some_other_key ] = :some_other_value
     cascading_composite_hash.delete( :some_key )
