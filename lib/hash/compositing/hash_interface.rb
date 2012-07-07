@@ -1,5 +1,41 @@
 
-class ::CompositingHash < ::HookedHash
+module ::CompositingHash::HashInterface
+    
+  ##########################
+  #  self.append_features  #
+  ##########################
+  
+  def self.append_features( instance )
+    
+    instance.module_eval do
+      
+      private
+        
+        alias_method :non_cascading_store, :[]=
+
+        alias_method :non_cascading_delete, :delete
+
+    end
+    
+    super
+
+  end
+  
+  ###################
+  #  self.included  #
+  ###################
+
+  def self.included( instance )
+    
+    instance.module_eval do
+      
+      alias_method :store, :[]=
+    
+    end
+    
+    super
+    
+  end
 
   ################
   #  initialize  #
@@ -125,9 +161,7 @@ class ::CompositingHash < ::HookedHash
 
   def ==( object )
     
-    @parent_key_lookup.each do |this_key, true_value|
-      self[ this_key ]
-    end
+    load_parent_state
     
     super
     
@@ -139,9 +173,7 @@ class ::CompositingHash < ::HookedHash
   
   def each( *args, & block )
     
-    @parent_key_lookup.each do |this_key, true_value|
-      self[ this_key ]
-    end
+    load_parent_state
 
     super
     
@@ -153,9 +185,7 @@ class ::CompositingHash < ::HookedHash
   
   def to_s
    
-    @parent_key_lookup.each do |this_key, true_value|
-      self[ this_key ]
-    end
+    load_parent_state
    
     super
     
@@ -167,9 +197,7 @@ class ::CompositingHash < ::HookedHash
   
   def inspect
    
-    @parent_key_lookup.each do |this_key, true_value|
-      self[ this_key ]
-    end
+    load_parent_state
    
     super
     
@@ -183,9 +211,8 @@ class ::CompositingHash < ::HookedHash
     
     return_value = nil
 
-    if @parent_key_lookup.has_key?( key )
-      return_value = set_parent_element_in_self( key, @parent_composite_object[ key ] )
-      @parent_key_lookup.delete( key )
+    if @parent_key_lookup[ key ]
+      return_value = lazy_set_parent_element_in_self( key, @parent_composite_object[ key ] )
     else
       return_value = super
     end
@@ -198,10 +225,6 @@ class ::CompositingHash < ::HookedHash
   #  []=  #
   #########
 
-  private
-    alias_method :non_cascading_store, :store
-  public
-  
   def []=( key, object )
 
     @replaced_parents[ key ] = true
@@ -219,15 +242,10 @@ class ::CompositingHash < ::HookedHash
     return object
 
   end
-  alias_method :store, :[]=
 
   ############
   #  delete  #
   ############
-
-  private
-    alias_method :non_cascading_delete, :delete
-  public
   
   def delete( key )
 
@@ -270,10 +288,10 @@ class ::CompositingHash < ::HookedHash
   #########################  Self-as-Sub Management for Parent Updates  ############################
 
   ################################
-  #  set_parent_element_in_self  #
+  #  lazy_set_parent_element_in_self  #
   ################################
   
-  def set_parent_element_in_self( key, object )
+  def lazy_set_parent_element_in_self( key, object )
 
     unless @without_child_hooks
       object = child_pre_set_hook( key, object )
@@ -338,8 +356,9 @@ class ::CompositingHash < ::HookedHash
       end
 
       if child_pre_delete_hook_result and pre_delete_hook_result
-         
-        @parent_key_lookup.delete( key )      
+        
+        @parent_key_lookup.delete( key )
+        
         object = non_cascading_delete( key )
         
         unless @without_hooks
@@ -356,7 +375,7 @@ class ::CompositingHash < ::HookedHash
         # and the child does not yet have its parent value
         # then we need to get it now
         if @parent_key_lookup.delete( key )
-          self[ key ] = object
+          lazy_set_parent_element_in_self( key, object )
         end
         
       end
@@ -369,6 +388,18 @@ class ::CompositingHash < ::HookedHash
     
     end
     
+  end
+
+  #######################
+  #  load_parent_state  #
+  #######################
+
+  def load_parent_state
+     
+    @parent_key_lookup.each do |this_key, true_value|
+      self[ this_key ]
+    end
+   
   end
   
 end

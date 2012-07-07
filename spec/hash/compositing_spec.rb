@@ -1,5 +1,5 @@
 
-require_relative '../lib/compositing-hash.rb'
+require_relative '../../lib/hash-compositing.rb'
 
 describe ::CompositingHash do
 

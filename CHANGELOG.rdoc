@@ -31,7 +31,7 @@ Added :configuration_instance parameter to :initialize.
 
 == 6/29/12
 
-Updates/fixes for hooked-hash.
+Updates/fixes for hash-hooked.
 
 == 6/30/12
 

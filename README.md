@@ -1,6 +1,6 @@
 # CompositingHash #
 
-http://rubygems.org/gems/compositing-hash
+http://rubygems.org/gems/hash-compositing
 
 # Description #
 
@@ -12,7 +12,7 @@ An implementation of Hash that permits chaining, where children inherit changes 
 
 # Install #
 
-* sudo gem install compositing-hash
+* sudo gem install hash-compositing
 
 # Usage #
 
