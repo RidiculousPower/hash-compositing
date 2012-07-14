@@ -172,7 +172,7 @@ module ::Hash::Compositing::HashInterface
   ##########
   
   def each( *args, & block )
-    
+
     load_parent_state
 
     super
@@ -202,7 +202,7 @@ module ::Hash::Compositing::HashInterface
     super
     
   end
-    
+  
   ########
   #  []  #
   ########
@@ -212,7 +212,7 @@ module ::Hash::Compositing::HashInterface
     return_value = nil
 
     if @parent_key_lookup[ key ]
-      return_value = lazy_set_parent_element_in_self( key, @parent_composite_object[ key ] )
+      return_value = lazy_set_parent_element_in_self( key )
     else
       return_value = super
     end
@@ -287,26 +287,29 @@ module ::Hash::Compositing::HashInterface
 
   #########################  Self-as-Sub Management for Parent Updates  ############################
 
-  ################################
+  #####################################
   #  lazy_set_parent_element_in_self  #
-  ################################
+  #####################################
   
-  def lazy_set_parent_element_in_self( key, object )
+  def lazy_set_parent_element_in_self( key, *optional_object )
+
+    object = nil
+    
+    case optional_object.count
+      when 0
+        object = @parent_composite_object[ key ]
+      when 1
+        object = optional_object[ 0 ]
+    end
+
+    @parent_key_lookup.delete( key )
 
     unless @without_child_hooks
       object = child_pre_set_hook( key, object )
     end
     
-    unless @without_hooks
-      object = pre_set_hook( key, object )
-    end
-    
     non_cascading_store( key, object )
   
-    unless @without_hooks
-      object = post_set_hook( key, object )
-    end
-
     unless @without_child_hooks
       object = child_post_set_hook( key, object )
     end
@@ -395,7 +398,7 @@ module ::Hash::Compositing::HashInterface
   #######################
 
   def load_parent_state
-     
+
     @parent_key_lookup.each do |this_key, true_value|
       self[ this_key ]
     end

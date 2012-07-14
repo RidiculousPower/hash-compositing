@@ -36,3 +36,7 @@ Updates/fixes for hash-hooked.
 == 6/30/12
 
 Key lookup from parents is now lazy.
+
+== 7/14/12
+
+Fixes for lazy lookup.

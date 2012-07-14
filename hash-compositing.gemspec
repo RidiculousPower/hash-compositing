@@ -4,7 +4,7 @@ Gem::Specification.new do |spec|
 
   spec.name                      =  'hash-compositing'
   spec.rubyforge_project         =  'hash-compositing'
-  spec.version                   =  '1.0.1'
+  spec.version                   =  '1.0.2'
 
   spec.summary                   =  "Provides Hash::Compositing."
   spec.description               =  "An implementation of Hash that permits chaining, where children inherit changes to parent and where parent settings can be overridden in children."
@@ -12,6 +12,8 @@ Gem::Specification.new do |spec|
   spec.authors                   =  [ 'Asher' ]
   spec.email                     =  'asher@ridiculouspower.com'
   spec.homepage                  =  'http://rubygems.org/gems/hash-compositing'
+
+  spec.required_ruby_version     = ">= 1.9.1"
 
   spec.add_dependency            'hash-hooked'
 
