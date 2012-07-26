@@ -40,3 +40,7 @@ Key lookup from parents is now lazy.
 == 7/14/12
 
 Fixes for lazy lookup.
+
+== 7/26/12
+
+Insert nil for parent store as placeholder.

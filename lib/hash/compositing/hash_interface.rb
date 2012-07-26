@@ -307,7 +307,7 @@ module ::Hash::Compositing::HashInterface
     unless @without_child_hooks
       object = child_pre_set_hook( key, object )
     end
-    
+
     non_cascading_store( key, object )
   
     unless @without_child_hooks
@@ -327,6 +327,8 @@ module ::Hash::Compositing::HashInterface
     unless @replaced_parents[ key ]
     
       @parent_key_lookup[ key ] = true
+      
+      non_cascading_store( key, nil )
       
       @sub_composite_hashes.each do |this_hash|
         this_hash.instance_eval do
