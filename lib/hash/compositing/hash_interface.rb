@@ -49,7 +49,7 @@ module ::Hash::Compositing::HashInterface
     @parent_key_lookup = { }
 
     # we may later have our own child composites that register with us
-    @sub_composite_hashes = [ ]
+    @child_composite_hashes = [ ]
 
     initialize_for_parent( parent_composite_hash )
     
@@ -74,7 +74,7 @@ module ::Hash::Compositing::HashInterface
 
     if @parent_composite_object = parent_composite_hash
 
-      @parent_composite_object.register_sub_composite_hash( self )
+      @parent_composite_object.register_child_composite_hash( self )
 
       # @parent_key_lookup tracks keys that we have not yet received from parent
       @parent_composite_object.each do |this_key, this_object|
@@ -87,24 +87,24 @@ module ::Hash::Compositing::HashInterface
   end
   
   #################################
-  #  register_sub_composite_hash  #
+  #  register_child_composite_hash  #
   #################################
 
-  def register_sub_composite_hash( sub_composite_hash )
+  def register_child_composite_hash( child_composite_hash )
 
-    @sub_composite_hashes.push( sub_composite_hash )
+    @child_composite_hashes.push( child_composite_hash )
 
     return self
 
   end
 
   ###################################
-  #  unregister_sub_composite_hash  #
+  #  unregister_child_composite_hash  #
   ###################################
 
-  def unregister_sub_composite_hash( sub_composite_hash )
+  def unregister_child_composite_hash( child_composite_hash )
 
-    @sub_composite_hashes.delete( sub_composite_hash )
+    @child_composite_hashes.delete( child_composite_hash )
 
     return self
 
@@ -233,7 +233,7 @@ module ::Hash::Compositing::HashInterface
     
     super
     
-    @sub_composite_hashes.each do |this_sub_hash|
+    @child_composite_hashes.each do |this_sub_hash|
       this_sub_hash.instance_eval do
         update_as_sub_hash_for_parent_store( key )
       end
@@ -255,7 +255,7 @@ module ::Hash::Compositing::HashInterface
 
     object = super
 
-    @sub_composite_hashes.each do |this_sub_hash|
+    @child_composite_hashes.each do |this_sub_hash|
       this_sub_hash.instance_eval do
         update_as_sub_hash_for_parent_delete( key, object )
       end
@@ -274,7 +274,7 @@ module ::Hash::Compositing::HashInterface
     
     # unregister with parent composite so we don't get future updates from it
     if @parent_composite_object
-      @parent_composite_object.unregister_sub_composite_hash( self )
+      @parent_composite_object.unregister_child_composite_hash( self )
     end
     
     return self
@@ -330,7 +330,7 @@ module ::Hash::Compositing::HashInterface
       
       non_cascading_store( key, nil )
       
-      @sub_composite_hashes.each do |this_hash|
+      @child_composite_hashes.each do |this_hash|
         this_hash.instance_eval do
           update_as_sub_hash_for_parent_store( key )
         end
@@ -385,7 +385,7 @@ module ::Hash::Compositing::HashInterface
         
       end
       
-      @sub_composite_hashes.each do |this_hash|
+      @child_composite_hashes.each do |this_hash|
         this_hash.instance_eval do
           update_as_sub_hash_for_parent_delete( key, object )
         end
