@@ -26,7 +26,8 @@ describe ::Hash::Compositing do
   
     cascading_composite_hash = ::Hash::Compositing.new
 
-    cascading_composite_hash.instance_variable_get( :@parent_composite_object ).should == nil
+    cascading_composite_hash.has_parents?.should == false
+    cascading_composite_hash.parents.should == [ ]
     cascading_composite_hash.should == {}
     cascading_composite_hash[ :A ] = 1
     cascading_composite_hash[ :B ] = 2
@@ -38,12 +39,30 @@ describe ::Hash::Compositing do
                                          :D => 4 }
     
     sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
-    sub_cascading_composite_hash.instance_variable_get( :@parent_composite_object ).should == cascading_composite_hash
+    sub_cascading_composite_hash.has_parents?.should == true
+    sub_cascading_composite_hash.parents.should == [ cascading_composite_hash ]
+    sub_cascading_composite_hash.has_parent?( cascading_composite_hash ).should == true
     sub_cascading_composite_hash.should == { :A => 1,
                                              :B => 2,
                                              :C => 3,
                                              :D => 4 }
-
+    
+    second_parent_hash = ::Hash::Compositing.new
+    second_parent_hash[ :E ] = 5
+    second_parent_hash[ :F ] = 6
+    second_parent_hash[ :G ] = 7
+    
+    sub_cascading_composite_hash.register_parent( second_parent_hash )
+    sub_cascading_composite_hash.parents.should == [ cascading_composite_hash, second_parent_hash ]
+    sub_cascading_composite_hash.has_parent?( second_parent_hash ).should == true
+    sub_cascading_composite_hash.should == { :A => 1,
+                                             :B => 2,
+                                             :C => 3,
+                                             :D => 4,
+                                             :E => 5,
+                                             :F => 6,
+                                             :G => 7 }
+    
   end
 
   ##################################################################################################
@@ -61,7 +80,7 @@ describe ::Hash::Compositing do
     sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
     
     sub_cascading_composite_hash.instance_eval do
-      update_as_sub_hash_for_parent_store( :A )
+      update_as_sub_hash_for_parent_store( cascading_composite_hash, :A )
       self.should == { :A => 1 }
     end
     
@@ -81,7 +100,7 @@ describe ::Hash::Compositing do
     sub_cascading_composite_hash.should == { :A => 1 }
 
     sub_cascading_composite_hash.instance_eval do
-      update_as_sub_hash_for_parent_delete( :A, 1 )
+      update_as_sub_hash_for_parent_delete( cascading_composite_hash, :A, 1 )
       self.should == { }
     end
     

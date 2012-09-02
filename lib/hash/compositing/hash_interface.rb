@@ -41,70 +41,94 @@ module ::Hash::Compositing::HashInterface
   #  initialize  #
   ################
   
-  def initialize( parent_composite_hash = nil, configuration_instance = nil )
+  def initialize( parent_instance = nil, configuration_instance = nil )
     
     super( configuration_instance )
         
     @replaced_parents = { }
-    @parent_key_lookup = { }
+    @key_requires_lookup = { }
 
-    # we may later have our own child composites that register with us
-    @child_composite_hashes = [ ]
+    # hashes from which we inherit
+    @parents = [ ]
+    
+    # hashes that inherit from us
+    @children = [ ]
 
-    initialize_for_parent( parent_composite_hash )
+    if parent_instance
+      register_parent( parent_instance )
+    end
     
   end
 
-  #############################
-  #  parent_composite_object  #
-  #  parent_composite_hash    #
-  #############################
-
-  attr_accessor :parent_composite_object
-
-  alias_method :parent_composite_hash, :parent_composite_object
-
   ###################################  Sub-Hash Management  #######################################
 
-  ###########################
-  #  initialize_for_parent  #
-  ###########################
+  #####################
+  #  register_parent  #
+  #####################
 
-  def initialize_for_parent( parent_composite_hash )
+  def register_parent( parent_instance )
 
-    if @parent_composite_object = parent_composite_hash
+    unless @parents.include?( parent_instance )
 
-      @parent_composite_object.register_child_composite_hash( self )
+      @parents.push( parent_instance )
 
-      # @parent_key_lookup tracks keys that we have not yet received from parent
-      @parent_composite_object.each do |this_key, this_object|
-        @parent_key_lookup[ this_key ] = true
+      parent_instance.register_child( self )
+
+      # @key_requires_lookup tracks keys that we have not yet received from parent
+      parent_instance.each do |this_key, this_object|
+        @key_requires_lookup[ this_key ] = parent_instance
         non_cascading_store( this_key, nil )
       end
-      
-    end
 
+    end
+    
   end
   
-  #################################
-  #  register_child_composite_hash  #
-  #################################
+  ####################
+  #  register_child  #
+  ####################
 
-  def register_child_composite_hash( child_composite_hash )
+  def register_child( child_composite_hash )
 
-    @child_composite_hashes.push( child_composite_hash )
+    @children.push( child_composite_hash )
 
     return self
 
   end
 
-  ###################################
-  #  unregister_child_composite_hash  #
-  ###################################
+  ##################
+  #  has_parents?  #
+  ##################
+  
+  def has_parents?
+    
+    return ! @parents.empty?
+    
+  end
 
-  def unregister_child_composite_hash( child_composite_hash )
+  #############
+  #  parents  #
+  #############
+  
+  attr_reader :parents
 
-    @child_composite_hashes.delete( child_composite_hash )
+  #################
+  #  has_parent?  #
+  #################
+  
+  def has_parent?( parent_instance )
+    
+    return @parents.include?( parent_instance )
+    
+  end
+
+  ######################
+  #  unregister_child  #
+  ######################
+
+  def unregister_child( child_composite_hash )
+
+    @children.delete( child_composite_hash )
 
     return self
 
@@ -211,7 +235,7 @@ module ::Hash::Compositing::HashInterface
     
     return_value = nil
 
-    if @parent_key_lookup[ key ]
+    if @key_requires_lookup[ key ]
       return_value = lazy_set_parent_element_in_self( key )
     else
       return_value = super
@@ -229,13 +253,15 @@ module ::Hash::Compositing::HashInterface
 
     @replaced_parents[ key ] = true
     
-    @parent_key_lookup.delete( key )
+    @key_requires_lookup.delete( key )
     
     super
     
-    @child_composite_hashes.each do |this_sub_hash|
+    parent_instance = self
+    
+    @children.each do |this_sub_hash|
       this_sub_hash.instance_eval do
-        update_as_sub_hash_for_parent_store( key )
+        update_as_sub_hash_for_parent_store( parent_instance, key )
       end
     end
         
@@ -251,13 +277,15 @@ module ::Hash::Compositing::HashInterface
 
     @replaced_parents.delete( key )
 
-    @parent_key_lookup.delete( key )
+    @key_requires_lookup.delete( key )
 
     object = super
 
-    @child_composite_hashes.each do |this_sub_hash|
+    parent_instance = self
+    
+    @children.each do |this_sub_hash|
       this_sub_hash.instance_eval do
-        update_as_sub_hash_for_parent_delete( key, object )
+        update_as_sub_hash_for_parent_delete( parent_instance, key, object )
       end
     end
 
@@ -273,8 +301,8 @@ module ::Hash::Compositing::HashInterface
   def freeze!
     
     # unregister with parent composite so we don't get future updates from it
-    if @parent_composite_object
-      @parent_composite_object.unregister_child_composite_hash( self )
+    @parents.each do |this_parent|
+      this_parent.unregister_child( self )
     end
     
     return self
@@ -294,15 +322,15 @@ module ::Hash::Compositing::HashInterface
   def lazy_set_parent_element_in_self( key, *optional_object )
 
     object = nil
+
+    parent_instance = @key_requires_lookup.delete( key )
     
     case optional_object.count
       when 0
-        object = @parent_composite_object[ key ]
+        object = parent_instance[ key ]
       when 1
         object = optional_object[ 0 ]
     end
-
-    @parent_key_lookup.delete( key )
 
     unless @without_child_hooks
       object = child_pre_set_hook( key, object )
@@ -322,17 +350,17 @@ module ::Hash::Compositing::HashInterface
   #  update_as_sub_hash_for_parent_store  #
   #########################################
 
-  def update_as_sub_hash_for_parent_store( key )
+  def update_as_sub_hash_for_parent_store( parent_instance, key )
         
     unless @replaced_parents[ key ]
     
-      @parent_key_lookup[ key ] = true
+      @key_requires_lookup[ key ] = parent_instance
       
       non_cascading_store( key, nil )
       
-      @child_composite_hashes.each do |this_hash|
+      @children.each do |this_hash|
         this_hash.instance_eval do
-          update_as_sub_hash_for_parent_store( key )
+          update_as_sub_hash_for_parent_store( parent_instance, key )
         end
       end
     
@@ -344,7 +372,7 @@ module ::Hash::Compositing::HashInterface
   #  update_as_sub_hash_for_parent_delete  #
   ##########################################
 
-  def update_as_sub_hash_for_parent_delete( key, object )
+  def update_as_sub_hash_for_parent_delete( parent_instance, key, object )
 
     unless @replaced_parents[ key ]
             
@@ -362,7 +390,7 @@ module ::Hash::Compositing::HashInterface
 
       if child_pre_delete_hook_result and pre_delete_hook_result
         
-        @parent_key_lookup.delete( key )
+        @key_requires_lookup.delete( key )
         
         object = non_cascading_delete( key )
         
@@ -379,15 +407,15 @@ module ::Hash::Compositing::HashInterface
         # if we were told not to delete in child when parent delete
         # and the child does not yet have its parent value
         # then we need to get it now
-        if @parent_key_lookup.delete( key )
+        if @key_requires_lookup.delete( key )
           lazy_set_parent_element_in_self( key, object )
         end
         
       end
       
-      @child_composite_hashes.each do |this_hash|
+      @children.each do |this_hash|
         this_hash.instance_eval do
-          update_as_sub_hash_for_parent_delete( key, object )
+          update_as_sub_hash_for_parent_delete( parent_instance, key, object )
         end
       end
     
@@ -401,7 +429,7 @@ module ::Hash::Compositing::HashInterface
 
   def load_parent_state
 
-    @parent_key_lookup.each do |this_key, true_value|
+    @key_requires_lookup.each do |this_key, true_value|
       self[ this_key ]
     end
    
