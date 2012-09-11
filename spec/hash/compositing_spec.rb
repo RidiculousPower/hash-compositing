@@ -575,7 +575,7 @@ describe ::Hash::Compositing do
     
     class ::Hash::Compositing::SubMockChildPreSet < ::Hash::Compositing
       
-      def child_pre_set_hook( key, object, is_insert = false )
+      def child_pre_set_hook( key, object, is_insert = false, parent_instance = nil )
         return :some_other_value
       end
       
@@ -599,7 +599,7 @@ describe ::Hash::Compositing do
 
     class ::Hash::Compositing::SubMockChildPostSet < ::Hash::Compositing
       
-      def child_post_set_hook( key, object, is_insert = false )
+      def child_post_set_hook( key, object, is_insert = false, parent_instance = nil )
         self[ :some_other_key ] = :some_other_value
       end
       
@@ -623,7 +623,7 @@ describe ::Hash::Compositing do
 
     class ::Hash::Compositing::SubMockChildPreDelete < ::Hash::Compositing
       
-      def child_pre_delete_hook( key )
+      def child_pre_delete_hook( key, parent_instance = nil )
         false
       end
       
@@ -647,7 +647,7 @@ describe ::Hash::Compositing do
 
     class ::Hash::Compositing::SubMockChildPostDelete < ::Hash::Compositing
       
-      def child_post_delete_hook( key, object )
+      def child_post_delete_hook( key, object, parent_instance = nil )
         delete( :some_other_key )
       end
       

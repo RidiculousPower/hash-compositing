@@ -53,6 +53,10 @@ module ::Hash::Compositing::HashInterface
     
     # hashes that inherit from us
     @children = [ ]
+    
+    # track keys parents own
+    # parent => [ keys ]
+    @parent_keys = { }
 
     if parent_instance
       register_parent( parent_instance )
@@ -71,19 +75,51 @@ module ::Hash::Compositing::HashInterface
     unless @parents.include?( parent_instance )
 
       @parents.push( parent_instance )
+      @parent_keys[ parent_instance ] = parent_keys = [ ]
 
       parent_instance.register_child( self )
 
       # @key_requires_lookup tracks keys that we have not yet received from parent
       parent_instance.each do |this_key, this_object|
         @key_requires_lookup[ this_key ] = parent_instance
+        parent_keys.push( this_key )
         non_cascading_store( this_key, nil )
       end
 
     end
     
   end
-  
+
+  #######################
+  #  unregister_parent  #
+  #######################
+
+  def unregister_parent( parent_instance )
+    
+    @parents.delete( parent_instance )
+    
+    parent_instance.unregister_child( self )
+    
+    parent_keys = @parent_keys.delete( parent_instance )
+    
+    return self
+    
+  end
+
+  ####################
+  #  replace_parent  #
+  ####################
+
+  def replace_parent( parent_instance, new_parent_instance  )
+    
+    unregister_parent( parent_instance )
+    
+    register_parent( new_parent_instance )
+    
+    return self
+    
+  end
+    
   ####################
   #  register_child  #
   ####################
@@ -140,7 +176,7 @@ module ::Hash::Compositing::HashInterface
   #  child_pre_set_hook  #
   ########################
 
-  def child_pre_set_hook( key, object )
+  def child_pre_set_hook( key, object, parent_instance = nil )
 
     return object
     
@@ -150,7 +186,7 @@ module ::Hash::Compositing::HashInterface
   #  child_post_set_hook  #
   #########################
 
-  def child_post_set_hook( key, object )
+  def child_post_set_hook( key, object, parent_instance = nil )
     
     return object
     
@@ -160,7 +196,7 @@ module ::Hash::Compositing::HashInterface
   #  child_pre_delete_hook  #
   ###########################
 
-  def child_pre_delete_hook( key )
+  def child_pre_delete_hook( key, parent_instance = nil )
     
     # false means delete does not take place
     return true
@@ -171,7 +207,7 @@ module ::Hash::Compositing::HashInterface
   #  child_post_delete_hook  #
   ############################
 
-  def child_post_delete_hook( key, object )
+  def child_post_delete_hook( key, object, parent_instance = nil )
     
     return object
     
@@ -333,13 +369,13 @@ module ::Hash::Compositing::HashInterface
     end
 
     unless @without_child_hooks
-      object = child_pre_set_hook( key, object )
+      object = child_pre_set_hook( key, object, parent_instance )
     end
 
     non_cascading_store( key, object )
   
     unless @without_child_hooks
-      object = child_post_set_hook( key, object )
+      object = child_post_set_hook( key, object, parent_instance )
     end
     
     return object
@@ -379,7 +415,7 @@ module ::Hash::Compositing::HashInterface
       if @without_child_hooks
         child_pre_delete_hook_result = true
       else
-        child_pre_delete_hook_result = child_pre_delete_hook( key )
+        child_pre_delete_hook_result = child_pre_delete_hook( key, parent_instance )
       end
       
       if @without_hooks
@@ -399,7 +435,7 @@ module ::Hash::Compositing::HashInterface
         end
 
         unless @without_child_hooks
-          child_post_delete_hook( key, object )
+          child_post_delete_hook( key, object, parent_instance )
         end
       
       else
