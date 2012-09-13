@@ -1,6 +1,8 @@
 
 begin ; require 'development' ; rescue ; end
 
+require 'module/cluster'
+
 require 'hash/hooked'
 
 # namespaces that have to be declared ahead of time for proper load order

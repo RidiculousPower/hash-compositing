@@ -15,6 +15,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version     = ">= 1.9.1"
 
+  spec.add_dependency            'module-cluster'
   spec.add_dependency            'hash-hooked'
 
   spec.date                      =  Date.today.to_s
