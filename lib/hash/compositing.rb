@@ -1,5 +1,5 @@
 
-begin ; require 'development' ; rescue ; end
+begin ; require 'development' ; rescue ::LoadError ; end
 
 require 'module/cluster'
 

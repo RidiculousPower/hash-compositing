@@ -131,14 +131,13 @@ module ::Hash::Compositing::HashInterface
     unless @parents.include?( parent_instance )
 
       @parents.push( parent_instance )
-      @parent_keys[ parent_instance ] = parent_keys = [ ]
+      @parent_keys[ parent_instance ] = parent_keys = parent_instance.keys
 
       parent_instance.register_child( self )
 
       # @key_requires_lookup tracks keys that we have not yet received from parent
-      parent_instance.each do |this_key, this_object|
+      parent_keys.each do |this_key|
         @key_requires_lookup[ this_key ] = parent_instance
-        parent_keys.push( this_key )
         non_cascading_store( this_key, nil )
       end
 
@@ -283,7 +282,7 @@ module ::Hash::Compositing::HashInterface
   attr_reader :parents
 
   #################
-  #  has_parent?  #
+  #  is_parent?  #
   #################
   
   ###
@@ -297,7 +296,7 @@ module ::Hash::Compositing::HashInterface
   #
   #         Whether potential_parent_instance is a parent of instance.
   #
-  def has_parent?( parent_instance )
+  def is_parent?( parent_instance )
     
     return @parents.include?( parent_instance )
     
@@ -575,6 +574,44 @@ module ::Hash::Compositing::HashInterface
     
   end
 
+  #######################
+  #  load_parent_state  #
+  #######################
+
+  ###
+  # Load all elements not yet inherited from parent or parents (but marked to be inherited).
+  #
+  # @param [Hash::Compositing] parent_instance
+  #
+  #        Load state only from parent instance if specified.
+  #        Otherwise all parent's state will be loaded.
+  #
+  # @return [Hash::Compositing]
+  #
+  #         Self.
+  #
+  def load_parent_state( parent_instance = nil )
+    
+    if parent_instance
+
+      @key_requires_lookup.each do |this_key, this_parent_instance|
+        if this_parent_instance == parent_instance
+          self[ this_key ]
+        end
+      end
+      
+    else
+      
+      @key_requires_lookup.each do |this_key, this_parent_instance|
+        self[ this_key ]
+      end
+      
+    end
+    
+    return self
+    
+  end
+
   ##################################################################################################
       private ######################################################################################
   ##################################################################################################
@@ -745,44 +782,6 @@ module ::Hash::Compositing::HashInterface
       end
     
     end
-    
-  end
-
-  #######################
-  #  load_parent_state  #
-  #######################
-
-  ###
-  # Load all elements not yet inherited from parent or parents (but marked to be inherited).
-  #
-  # @param [Hash::Compositing] parent_instance
-  #
-  #        Load state only from parent instance if specified.
-  #        Otherwise all parent's state will be loaded.
-  #
-  # @return [Hash::Compositing]
-  #
-  #         Self.
-  #
-  def load_parent_state( parent_instance = nil )
-    
-    if parent_instance
-
-      @key_requires_lookup.each do |this_key, this_parent_instance|
-        if this_parent_instance == parent_instance
-          self[ this_key ]
-        end
-      end
-      
-    else
-      
-      @key_requires_lookup.each do |this_key, this_parent_instance|
-        self[ this_key ]
-      end
-      
-    end
-    
-    return self
     
   end
   

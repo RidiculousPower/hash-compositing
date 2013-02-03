@@ -41,7 +41,7 @@ describe ::Hash::Compositing do
     sub_cascading_composite_hash = ::Hash::Compositing.new( cascading_composite_hash )
     sub_cascading_composite_hash.has_parents?.should == true
     sub_cascading_composite_hash.parents.should == [ cascading_composite_hash ]
-    sub_cascading_composite_hash.has_parent?( cascading_composite_hash ).should == true
+    sub_cascading_composite_hash.is_parent?( cascading_composite_hash ).should == true
     sub_cascading_composite_hash.should == { :A => 1,
                                              :B => 2,
                                              :C => 3,
@@ -54,7 +54,7 @@ describe ::Hash::Compositing do
     
     sub_cascading_composite_hash.register_parent( second_parent_hash )
     sub_cascading_composite_hash.parents.should == [ cascading_composite_hash, second_parent_hash ]
-    sub_cascading_composite_hash.has_parent?( second_parent_hash ).should == true
+    sub_cascading_composite_hash.is_parent?( second_parent_hash ).should == true
     sub_cascading_composite_hash.should == { :A => 1,
                                              :B => 2,
                                              :C => 3,
