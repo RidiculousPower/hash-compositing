@@ -128,7 +128,7 @@ module ::Hash::Compositing::HashInterface
   #
   def register_parent( parent_instance )
 
-    unless @parents.include?( parent_instance )
+    unless is_parent?( parent_instance )
 
       @parents.push( parent_instance )
       @parent_keys[ parent_instance ] = parent_keys = parent_instance.keys
@@ -298,7 +298,13 @@ module ::Hash::Compositing::HashInterface
   #
   def is_parent?( parent_instance )
     
-    return @parents.include?( parent_instance )
+    is_parent = false
+
+    @parents.each do |this_parent|
+      break if already_includes = this_parent.equal?( parent_instance )
+    end
+    
+    return is_parent
     
   end
 

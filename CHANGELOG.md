@@ -54,3 +54,7 @@ Updated to support multiple parents.
 Minor changes to correspond to updates in Array packages.
 Changes from has_parent?( ... ) to is_parent?( ... ).
 Other minor updates.
+
+## 2/15/2013 ##
+
+Changed :is_parent? to check by equal? instead of include? which uses == and therefore loads parent state.
