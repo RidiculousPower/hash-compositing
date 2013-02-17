@@ -8,9 +8,9 @@ module ::Hash::Compositing::HashInterface
   ################
   
   ###
-  # @overload initialize( parent_instance, configuration_instance, hash_initialization_arg, ... )
+  # @overload initialize( parent_hash, configuration_instance, hash_initialization_arg, ... )
   #
-  #   @param [Hash::Compositing] parent_instance
+  #   @param [Hash::Compositing] parent_hash
   #   
   #          Instance from which instance will inherit elements.
   #   
@@ -22,7 +22,7 @@ module ::Hash::Compositing::HashInterface
   #   
   #          Arguments passed to Hash#initialize.
   #
-  def initialize( parent_instance = nil, configuration_instance = nil, *hash_initialization_args )
+  def initialize( parent_hash = nil, configuration_instance = nil, *hash_initialization_args )
     
     super( configuration_instance, *hash_initialization_args )
         
@@ -39,8 +39,8 @@ module ::Hash::Compositing::HashInterface
     # parent => [ keys ]
     @parent_keys = { }
 
-    if parent_instance
-      register_parent( parent_instance )
+    if parent_hash
+      register_parent( parent_hash )
     end
     
   end
@@ -118,7 +118,7 @@ module ::Hash::Compositing::HashInterface
   ###
   # Register a parent for element inheritance.
   #
-  # @param [Hash::Compositing] parent_instance
+  # @param [Hash::Compositing] parent_hash
   #
   #        Instance from which instance will inherit elements.
   #
@@ -126,27 +126,25 @@ module ::Hash::Compositing::HashInterface
   #
   #         Self.
   #
-  def register_parent( parent_instance )
+  def register_parent( parent_hash, *args )
 
-    unless is_parent?( parent_instance )
+    unless is_parent?( parent_hash )
 
-      @parents.push( parent_instance )
-      @parent_keys[ parent_instance ] = parent_keys = parent_instance.keys
+      @parents.push( parent_hash )
 
-      parent_instance.register_child( self )
+      parent_hash.register_child( self )
+      
+      @parent_keys[ parent_hash ] = parent_keys = parent_hash.keys
 
       # @key_requires_lookup tracks keys that we have not yet received from parent
-      parent_keys.each do |this_key|
-        @key_requires_lookup[ this_key ] = parent_instance
-        non_cascading_store( this_key, nil )
-      end
-
+      parent_keys.each { |this_parent_key| register_parent_key( parent_hash, this_parent_key, *args ) }
+      
     end
     
     return self
     
   end
-
+  
   #######################
   #  unregister_parent  #
   #######################
@@ -154,7 +152,7 @@ module ::Hash::Compositing::HashInterface
   ###
   # Unregister a parent for element inheritance and remove all associated elements.
   #
-  # @param [Hash::Compositing] parent_instance
+  # @param [Hash::Compositing] parent_hash
   #
   #        Instance from which instance will inherit elements.
   #
@@ -162,13 +160,13 @@ module ::Hash::Compositing::HashInterface
   #
   #         Self.
   #
-  def unregister_parent( parent_instance )
+  def unregister_parent( parent_hash )
     
-    @parents.delete( parent_instance )
+    @parents.delete( parent_hash )
     
-    parent_instance.unregister_child( self )
+    parent_hash.unregister_child( self )
     
-    parent_keys = @parent_keys.delete( parent_instance )
+    parent_keys = @parent_keys.delete( parent_hash )
     
     return self
     
@@ -183,11 +181,11 @@ module ::Hash::Compositing::HashInterface
   #   removing all associated elements of the existing parent and adding those
   #   from the new parent.
   #
-  # @param [Hash::Compositing] parent_instance
+  # @param [Hash::Compositing] parent_hash
   #
   #        Existing instance from which instance is inheriting elements.
   #
-  # @param [Hash::Compositing] parent_instance
+  # @param [Hash::Compositing] parent_hash
   #
   #        New instance from which instance will inherit elements instead.
   #
@@ -195,11 +193,11 @@ module ::Hash::Compositing::HashInterface
   #
   #         Self.
   #
-  def replace_parent( parent_instance, new_parent_instance  )
+  def replace_parent( parent_hash, new_parent_hash  )
     
-    unregister_parent( parent_instance )
+    unregister_parent( parent_hash )
     
-    register_parent( new_parent_instance )
+    register_parent( new_parent_hash )
     
     return self
     
@@ -288,20 +286,20 @@ module ::Hash::Compositing::HashInterface
   ###
   # Query whether instance has instance as a parent instance from which it inherits elements.
   #
-  # @params [Hash::Compositing] potential_parent_instance
+  # @params [Hash::Compositing] potential_parent_hash
   # 
   #         Instance being queried.
   # 
   # @return [true,false] 
   #
-  #         Whether potential_parent_instance is a parent of instance.
+  #         Whether potential_parent_hash is a parent of instance.
   #
-  def is_parent?( parent_instance )
+  def is_parent?( parent_hash )
     
     is_parent = false
 
     @parents.each do |this_parent|
-      break if already_includes = this_parent.equal?( parent_instance )
+      break if is_parent = this_parent.equal?( parent_hash )
     end
     
     return is_parent
@@ -326,7 +324,7 @@ module ::Hash::Compositing::HashInterface
   #
   #        Element being stored.
   #
-  # @param [Hash::Compositing] parent_instance 
+  # @param [Hash::Compositing] parent_hash 
   #
   #        Instance that initiated set or insert.
   #
@@ -334,7 +332,7 @@ module ::Hash::Compositing::HashInterface
   #
   #         Return value is used in place of object.
   #
-  def child_pre_set_hook( key, object, parent_instance = nil )
+  def child_pre_set_hook( key, object, parent_hash = nil )
 
     return object
     
@@ -355,13 +353,13 @@ module ::Hash::Compositing::HashInterface
   #
   #        Element being stored.
   #
-  # @param [Hash::Compositing] parent_instance 
+  # @param [Hash::Compositing] parent_hash 
   #
   #        Instance that initiated set or insert.
   #
   # @return [Object] Ignored.
   #
-  def child_post_set_hook( key, object, parent_instance = nil )
+  def child_post_set_hook( key, object, parent_hash = nil )
     
     return object
     
@@ -379,7 +377,7 @@ module ::Hash::Compositing::HashInterface
   #
   #        Key at which delete is taking place.
   #
-  # @param [Hash::Compositing] parent_instance 
+  # @param [Hash::Compositing] parent_hash 
   #
   #        Instance that initiated delete.
   #
@@ -387,7 +385,7 @@ module ::Hash::Compositing::HashInterface
   #
   #         If return value is false, delete does not occur.
   #
-  def child_pre_delete_hook( key, parent_instance = nil )
+  def child_pre_delete_hook( key, parent_hash = nil )
     
     # false means delete does not take place
     return true
@@ -409,7 +407,7 @@ module ::Hash::Compositing::HashInterface
   #
   #        Element deleted.
   #
-  # @param [Hash::Compositing] parent_instance 
+  # @param [Hash::Compositing] parent_hash 
   #
   #        Instance that initiated delete.
   #
@@ -417,7 +415,7 @@ module ::Hash::Compositing::HashInterface
   #
   #         Object returned in place of delete result.
   #
-  def child_post_delete_hook( key, object, parent_instance = nil )
+  def child_post_delete_hook( key, object, parent_hash = nil )
     
     return object
     
@@ -504,11 +502,11 @@ module ::Hash::Compositing::HashInterface
     
     super
     
-    parent_instance = self
+    parent_hash = self
     
     @children.each do |this_sub_hash|
       this_sub_hash.instance_eval do
-        update_for_parent_store( parent_instance, key )
+        update_for_parent_store( parent_hash, key )
       end
     end
         
@@ -530,11 +528,11 @@ module ::Hash::Compositing::HashInterface
 
     object = super
 
-    parent_instance = self
+    parent_hash = self
     
     @children.each do |this_sub_hash|
       this_sub_hash.instance_eval do
-        update_for_parent_delete( parent_instance, key, object )
+        update_for_parent_delete( parent_hash, key, object )
       end
     end
 
@@ -549,7 +547,7 @@ module ::Hash::Compositing::HashInterface
   ###
   # Unregisters parent(s) without removing values inherited from them.
   #
-  # @param [Hash::Compositing] parent_instance
+  # @param [Hash::Compositing] parent_hash
   #
   #        Freeze state only from parent instance if specified.
   #        Otherwise all parent's state will be frozen.
@@ -558,20 +556,20 @@ module ::Hash::Compositing::HashInterface
   #
   #         Self.
   #
-  def freeze!( parent_instance = nil )
+  def freeze!( parent_hash = nil )
     
     # look up all values
-    load_parent_state( parent_instance )
+    load_parent_state( parent_hash )
     
-    if parent_instance
+    if parent_hash
       
-      parent_instance.unregister_child( self )
+      parent_hash.unregister_child( self )
       
     else
       
       # unregister with parent composite so we don't get future updates from it
-      @parents.each do |this_parent_instance|
-        this_parent_instance.unregister_child( self )
+      @parents.each do |this_parent_hash|
+        this_parent_hash.unregister_child( self )
       end
       
     end
@@ -587,7 +585,7 @@ module ::Hash::Compositing::HashInterface
   ###
   # Load all elements not yet inherited from parent or parents (but marked to be inherited).
   #
-  # @param [Hash::Compositing] parent_instance
+  # @param [Hash::Compositing] parent_hash
   #
   #        Load state only from parent instance if specified.
   #        Otherwise all parent's state will be loaded.
@@ -596,19 +594,19 @@ module ::Hash::Compositing::HashInterface
   #
   #         Self.
   #
-  def load_parent_state( parent_instance = nil )
+  def load_parent_state( parent_hash = nil )
     
-    if parent_instance
+    if parent_hash
 
-      @key_requires_lookup.each do |this_key, this_parent_instance|
-        if this_parent_instance == parent_instance
+      @key_requires_lookup.each do |this_key, this_parent_hash|
+        if this_parent_hash == parent_hash
           self[ this_key ]
         end
       end
       
     else
       
-      @key_requires_lookup.each do |this_key, this_parent_instance|
+      @key_requires_lookup.each do |this_key, this_parent_hash|
         self[ this_key ]
       end
       
@@ -622,6 +620,19 @@ module ::Hash::Compositing::HashInterface
       private ######################################################################################
   ##################################################################################################
 
+  #########################
+  #  register_parent_key  #
+  #########################
+  
+  def register_parent_key( parent_hash, parent_key )
+    
+    @key_requires_lookup[ parent_key ] = parent_hash
+    non_cascading_store( parent_key, nil )
+    
+    return parent_key
+    
+  end
+  
   #########################  Self-as-Sub Management for Parent Updates  ############################
 
   #####################################
@@ -650,26 +661,26 @@ module ::Hash::Compositing::HashInterface
   def lazy_set_parent_element_in_self( key, *optional_object )
 
     object = nil
-
-    parent_instance = @key_requires_lookup.delete( key )
+    
+    parent_hash = @key_requires_lookup.delete( key )
     
     case optional_object.count
       when 0
-        object = parent_instance[ key ]
+        object = parent_hash[ key ]
       when 1
         object = optional_object[ 0 ]
     end
 
     unless @without_child_hooks
-      object = child_pre_set_hook( key, object, parent_instance )
+      object = child_pre_set_hook( key, object, parent_hash )
     end
 
     non_cascading_store( key, object )
   
     unless @without_child_hooks
-      object = child_post_set_hook( key, object, parent_instance )
+      object = child_post_set_hook( key, object, parent_hash )
     end
-    
+        
     return object
     
   end
@@ -681,7 +692,7 @@ module ::Hash::Compositing::HashInterface
   ###
   # Perform #set in self inherited from #store requested on parent (or parent of parent).
   #
-  # @param [Hash::Compositing] parent_instance
+  # @param [Hash::Compositing] parent_hash
   #
   #        Instance where #store occurred that is now cascading downward.
   #
@@ -697,17 +708,15 @@ module ::Hash::Compositing::HashInterface
   #
   #         Self.
   #
-  def update_for_parent_store( parent_instance, key )
+  def update_for_parent_store( parent_hash, key )
         
     unless @replaced_parents[ key ]
     
-      @key_requires_lookup[ key ] = parent_instance
-      
-      non_cascading_store( key, nil )
+      register_parent_key( parent_hash, key )
       
       @children.each do |this_hash|
         this_hash.instance_eval do
-          update_for_parent_store( parent_instance, key )
+          update_for_parent_store( parent_hash, key )
         end
       end
     
@@ -724,7 +733,7 @@ module ::Hash::Compositing::HashInterface
   ###
   # Perform #set in self inherited from #delete requested on parent (or parent of parent).
   #
-  # @param [Hash::Compositing] parent_instance
+  # @param [Hash::Compositing] parent_hash
   #
   #        Instance where #delete occurred that is now cascading downward.
   #
@@ -740,14 +749,14 @@ module ::Hash::Compositing::HashInterface
   #
   #         Self.
   #
-  def update_for_parent_delete( parent_instance, key, object )
+  def update_for_parent_delete( parent_hash, key, object )
 
     unless @replaced_parents[ key ]
             
       if @without_child_hooks
         child_pre_delete_hook_result = true
       else
-        child_pre_delete_hook_result = child_pre_delete_hook( key, parent_instance )
+        child_pre_delete_hook_result = child_pre_delete_hook( key, parent_hash )
       end
       
       if @without_hooks
@@ -767,7 +776,7 @@ module ::Hash::Compositing::HashInterface
         end
 
         unless @without_child_hooks
-          child_post_delete_hook( key, object, parent_instance )
+          child_post_delete_hook( key, object, parent_hash )
         end
       
       else
@@ -783,7 +792,7 @@ module ::Hash::Compositing::HashInterface
       
       @children.each do |this_hash|
         this_hash.instance_eval do
-          update_for_parent_delete( parent_instance, key, object )
+          update_for_parent_delete( parent_hash, key, object )
         end
       end
     
