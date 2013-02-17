@@ -126,7 +126,7 @@ module ::Hash::Compositing::HashInterface
   #
   #         Self.
   #
-  def register_parent( parent_hash, *args )
+  def register_parent( parent_hash )
 
     unless is_parent?( parent_hash )
 
@@ -137,7 +137,7 @@ module ::Hash::Compositing::HashInterface
       @parent_keys[ parent_hash ] = parent_keys = parent_hash.keys
 
       # @key_requires_lookup tracks keys that we have not yet received from parent
-      parent_keys.each { |this_parent_key| register_parent_key( parent_hash, this_parent_key, *args ) }
+      parent_keys.each { |this_parent_key| register_parent_key( parent_hash, this_parent_key ) }
       
     end
     
