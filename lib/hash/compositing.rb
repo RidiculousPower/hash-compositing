@@ -1,5 +1,4 @@
-
-begin ; require 'development' ; rescue ::LoadError ; end
+# -*- encoding : utf-8 -*-
 
 require 'module/cluster'
 

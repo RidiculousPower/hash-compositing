@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 
 require_relative '../../lib/hash-compositing.rb'
 
@@ -65,13 +66,9 @@ describe ::Hash::Compositing do
     
   end
 
-  ##################################################################################################
-  #    private #####################################################################################
-  ##################################################################################################
-
-  #########################################
+  #############################
   #  update_for_parent_store  #
-  #########################################
+  #############################
 
   it 'can update for a parent store' do
 
@@ -86,9 +83,9 @@ describe ::Hash::Compositing do
     
   end
 
-  ##########################################
+  ##############################
   #  update_for_parent_delete  #
-  ##########################################
+  ##############################
 
   it 'can update for a parent delete' do
 
@@ -105,10 +102,6 @@ describe ::Hash::Compositing do
     end
     
   end
-
-  ##################################################################################################
-  #    public ######################################################################################
-  ##################################################################################################
 
   #########
   #  []=  #
@@ -427,7 +420,7 @@ describe ::Hash::Compositing do
     
     class ::Hash::Compositing::SubMockPreSet < ::Hash::Compositing
       
-      def pre_set_hook( key, object, is_insert = false )
+      def pre_set_hook( key, object )
         return :some_other_value
       end
       
@@ -449,7 +442,7 @@ describe ::Hash::Compositing do
 
     class ::Hash::Compositing::SubMockPostSet < ::Hash::Compositing
       
-      def post_set_hook( key, object, is_insert = false )
+      def post_set_hook( key, object )
         unless key == :some_other_key
           self[ :some_other_key ] = :some_other_value
         end
@@ -575,7 +568,7 @@ describe ::Hash::Compositing do
     
     class ::Hash::Compositing::SubMockChildPreSet < ::Hash::Compositing
       
-      def child_pre_set_hook( key, object, is_insert = false, parent_instance = nil )
+      def child_pre_set_hook( key, object, parent_hash )
         return :some_other_value
       end
       
@@ -599,7 +592,7 @@ describe ::Hash::Compositing do
 
     class ::Hash::Compositing::SubMockChildPostSet < ::Hash::Compositing
       
-      def child_post_set_hook( key, object, is_insert = false, parent_instance = nil )
+      def child_post_set_hook( key, object, parent_hash )
         self[ :some_other_key ] = :some_other_value
       end
       
@@ -623,7 +616,7 @@ describe ::Hash::Compositing do
 
     class ::Hash::Compositing::SubMockChildPreDelete < ::Hash::Compositing
       
-      def child_pre_delete_hook( key, parent_instance = nil )
+      def child_pre_delete_hook( key, parent_hash = nil )
         false
       end
       
@@ -647,7 +640,7 @@ describe ::Hash::Compositing do
 
     class ::Hash::Compositing::SubMockChildPostDelete < ::Hash::Compositing
       
-      def child_post_delete_hook( key, object, parent_instance = nil )
+      def child_post_delete_hook( key, object, parent_hash = nil )
         delete( :some_other_key )
       end
       

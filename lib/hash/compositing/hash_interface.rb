@@ -1,3 +1,4 @@
+# -*- encoding : utf-8 -*-
 
 module ::Hash::Compositing::HashInterface
 
@@ -616,10 +617,6 @@ module ::Hash::Compositing::HashInterface
     
   end
 
-  ##################################################################################################
-      private ######################################################################################
-  ##################################################################################################
-
   #########################
   #  register_parent_key  #
   #########################
@@ -643,36 +640,33 @@ module ::Hash::Compositing::HashInterface
   # Perform look-up of local key in parent or load value delivered from parent
   #   when parent delete was prevented in child.
   #
-  # @overload lazy_set_parent_element_in_self( key, optional_object, ... )
-  #
-  #   @param [Object] key
-  #
-  #          Key in instance for which value requires look-up/set.
-  #
-  #   @param [Object] optional_object
-  #
-  #          If we deleted in parent and then child delete hook prevented local delete
-  #          then we have an object passed since our parent can no longer provide it
+  # @param [Object] key
+  # 
+  #        Key in instance for which value requires look-up/set.
+  # 
+  # @param [Object] optional_object
+  # 
+  #        If we deleted in parent and then child delete hook prevented local delete
+  #        then we have an object passed since our parent can no longer provide it
   #
   # @return [Object]
   #
   #         Lazy set value.
   #
-  def lazy_set_parent_element_in_self( key, *optional_object )
+  def lazy_set_parent_element_in_self( key, optional_object = nil, passed_optional_object = false )
 
     object = nil
     
     parent_hash = @key_requires_lookup.delete( key )
     
-    case optional_object.count
-      when 0
-        object = parent_hash[ key ]
-      when 1
-        object = optional_object[ 0 ]
-    end
+    object = passed_optional_object ? optional_object : parent_hash[ key ]
 
     unless @without_child_hooks
       object = child_pre_set_hook( key, object, parent_hash )
+      if ::Hash::Compositing::DoNotInherit.equal?( object )
+        delete( key )
+        return nil
+      end
     end
 
     non_cascading_store( key, object )
@@ -785,7 +779,7 @@ module ::Hash::Compositing::HashInterface
         # and the child does not yet have its parent value
         # then we need to get it now
         if @key_requires_lookup.delete( key )
-          lazy_set_parent_element_in_self( key, object )
+          lazy_set_parent_element_in_self( key, object, true )
         end
         
       end
