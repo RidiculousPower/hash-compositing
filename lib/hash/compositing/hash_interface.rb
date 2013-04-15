@@ -40,9 +40,7 @@ module ::Hash::Compositing::HashInterface
     # parent => [ keys ]
     @parent_keys = { }
 
-    if parent_hash
-      register_parent( parent_hash )
-    end
+    register_parent( parent_hash ) if parent_hash
     
   end
 
@@ -132,9 +130,7 @@ module ::Hash::Compositing::HashInterface
     unless is_parent?( parent_hash )
 
       @parents.push( parent_hash )
-
       parent_hash.register_child( self )
-      
       @parent_keys[ parent_hash ] = parent_keys = parent_hash.keys
 
       # @key_requires_lookup tracks keys that we have not yet received from parent
@@ -164,9 +160,7 @@ module ::Hash::Compositing::HashInterface
   def unregister_parent( parent_hash )
     
     @parents.delete( parent_hash )
-    
     parent_hash.unregister_child( self )
-    
     parent_keys = @parent_keys.delete( parent_hash )
     
     return self
