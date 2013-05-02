@@ -594,16 +594,12 @@ module ::Hash::Compositing::HashInterface
     if parent_hash
 
       @key_requires_lookup.each do |this_key, this_parent_hash|
-        if this_parent_hash == parent_hash
-          self[ this_key ]
-        end
+        self[ this_key ] if this_parent_hash.equal?( parent_hash )
       end
       
     else
       
-      @key_requires_lookup.each do |this_key, this_parent_hash|
-        self[ this_key ]
-      end
+      @key_requires_lookup.each { |this_key, this_parent_hash| self[ this_key ] }
       
     end
     
@@ -625,6 +621,29 @@ module ::Hash::Compositing::HashInterface
   end
   
   #########################  Self-as-Sub Management for Parent Updates  ############################
+
+  ######################
+  #  requires_lookup!  #
+  ######################
+  
+  ###
+  # Declare that local index requires look up.
+  #
+  # @param [Object] key
+  # 
+  #        Key in instance for which value requires look-up/set.
+  # 
+  # @return [self] 
+  #
+  #         Self.
+  #
+  def requires_lookup!( key, parent_hash )
+    
+    @key_requires_lookup[ key ] = parent_hash
+    
+    return self
+    
+  end
 
   #####################################
   #  lazy_set_parent_element_in_self  #
