@@ -2,8 +2,6 @@
 
 module ::Hash::Compositing::HashInterface
 
-  extend ::Module::Cluster
-
   ################
   #  initialize  #
   ################

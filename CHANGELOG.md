@@ -58,3 +58,7 @@ Other minor updates.
 ## 2/15/2013 ##
 
 Changed :is_parent? to check by equal? instead of include? which uses == and therefore loads parent state.
+
+## 7/08/2013 ##
+
+Removed module-cluster dependency so that module-cluster can use hooked and compositing objects.
