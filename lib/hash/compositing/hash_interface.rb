@@ -548,7 +548,7 @@ module ::Hash::Compositing::HashInterface
   def register_parent_key( parent_hash, parent_key )
     
     @key_requires_lookup[ parent_key ] = parent_hash
-    non_cascading_store( parent_key, nil )
+    perform_set_between_hooks( parent_key, nil )
     
     return parent_key
     
