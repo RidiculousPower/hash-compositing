@@ -226,10 +226,36 @@ module ::Hash::Compositing::HashInterface
   def is_parent?( parent_hash )
     
     is_parent = false
-
+    
     @parents.each do |this_parent|
-      break if is_parent = this_parent.equal?( parent_hash )
+      break if is_parent = this_parent.equal?( parent_hash )     or 
+               is_parent = this_parent.is_parent?( parent_hash )
     end
+    
+    return is_parent
+    
+  end
+
+  ##########################
+  #  is_immediate_parent?  #
+  ##########################
+
+  ###
+  # Query whether instance has instance as a first-level parent instance from which it inherits elements.
+  #
+  # @params [Hash::Compositing] potential_parent_hash
+  # 
+  #         Instance being queried.
+  # 
+  # @return [true,false] 
+  #
+  #         Whether potential_parent_hash is a parent of instance.
+  #
+  def is_immediate_parent?( parent_hash )
+    
+    is_parent = false
+
+    @parents.each { |this_parent| break if is_parent = this_parent.equal?( parent_hash ) }
     
     return is_parent
     
@@ -546,7 +572,7 @@ module ::Hash::Compositing::HashInterface
   #########################
   
   def register_parent_key( parent_hash, parent_key )
-    
+
     @key_requires_lookup[ parent_key ] = parent_hash
     perform_set_between_hooks( parent_key, nil )
     
@@ -655,9 +681,11 @@ module ::Hash::Compositing::HashInterface
     
       register_parent_key( parent_hash, key )
       
+      parent_hash_for_child = self
+      
       @children.each do |this_hash|
         this_hash.instance_eval do
-          update_for_parent_store( parent_hash, key )
+          update_for_parent_store( parent_hash_for_child, key )
         end
       end
     
