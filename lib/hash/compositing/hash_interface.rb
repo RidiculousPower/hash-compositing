@@ -576,6 +576,8 @@ module ::Hash::Compositing::HashInterface
     @key_requires_lookup[ parent_key ] = parent_hash
     perform_set_between_hooks( parent_key, nil )
     
+    @children.each { |this_child| this_child.register_parent_key( self, parent_key ) }
+    
     return parent_key
     
   end
@@ -682,11 +684,9 @@ module ::Hash::Compositing::HashInterface
       register_parent_key( parent_hash, key )
       
       parent_hash_for_child = self
-      
+
       @children.each do |this_hash|
-        this_hash.instance_eval do
-          update_for_parent_store( parent_hash_for_child, key )
-        end
+        this_hash.instance_eval { update_for_parent_store( parent_hash_for_child, key ) }
       end
     
     end
